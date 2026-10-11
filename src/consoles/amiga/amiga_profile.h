@@ -110,6 +110,7 @@ static inline void launcher_profile_apply_amiga(RecompLauncherCGameInfo* gi) {
     gi->rom_noun = "DISK";
     gi->widescreen_supported = 0;
     gi->has_screen_kind = 1;            // Sharp / 1084S / Easymode / Aperture / Scanlines
+    gi->has_integer_scale = 1;          // pixel perfect: whole multiples of the game's lines
     gi->settings_bindings = 1;          // the runner consumes the key/pad chips
 }
 
