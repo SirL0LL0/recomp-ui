@@ -23,6 +23,8 @@ static const LauncherI18nEntry kItalian[] = {
     {"Package installed. Changes apply when you press PLAY.",
      "Pacchetto installato. Le modifiche si applicano premendo GIOCA."},
     {"Disable all", "Disabilita tutto"},
+    {"Enable all", "Abilita tutto"},
+    {"Enable every mod feature", "Abilita tutte le funzioni mod"},
     {"Disable every installed mod feature", "Disabilita tutte le funzioni mod installate"},
     {"Search features, groups, packages...", "Cerca funzioni, gruppi, pacchetti..."},
     {"General", "Generale"},

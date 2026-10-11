@@ -11895,7 +11895,7 @@ static void draw_mod_feature_diagnostics(
     }
 }
 
-static bool disable_all_mod_features(LauncherModel* m) {
+static bool set_all_mod_features(LauncherModel* m, int on) {
     const auto* mods = m ? m->mods : nullptr;
     if (!mods || !mods->feature_count || !mods->feature_get ||
         !mods->feature_enable) {
@@ -11921,10 +11921,10 @@ static bool disable_all_mod_features(LauncherModel* m) {
         /* A concealed feature keeps whatever its package and saved state
          * say; the player cannot see it, so a bulk action must not flip it. */
         if (launcher_mod_feature_concealed(mods, &feature) ||
-            !feature.enabled)
+            (feature.enabled != 0) == (on != 0))
             continue;
         if (!mods->feature_enable(mods->ctx, feature.package_id, feature.id,
-                                  0)) {
+                                  on ? 1 : 0)) {
             char failure[sizeof(m->mod_status)] = {};
             const char* error =
                 mods->last_error ? mods->last_error(mods->ctx) : nullptr;
@@ -11948,10 +11948,13 @@ static bool disable_all_mod_features(LauncherModel* m) {
         }
         changed.push_back(index);
     }
-    std::snprintf(m->mod_status, sizeof(m->mod_status),
-                  "All mod features disabled. Changes apply on PLAY.");
+    std::snprintf(m->mod_status, sizeof(m->mod_status), "%s",
+                  on ? "All mod features enabled. Changes apply on PLAY."
+                     : "All mod features disabled. Changes apply on PLAY.");
     return true;
 }
+
+static bool disable_all_mod_features(LauncherModel* m) { return set_all_mod_features(m, 0); }
 
 /* Packages that never loaded, at the top of the page.
  *
@@ -12019,21 +12022,29 @@ static void draw_mod_features(LauncherModel* m, const LauncherTheme& th) {
                   "Install %s", archive_extension);
     std::snprintf(archive_pattern, sizeof(archive_pattern),
                   "*%s", archive_extension);
-    if (ImGui::Button(install_label)) {
-        ui_pick_file(m, "Install Mod Package", {archive_pattern},
-                     archive_description, [m, mods](const char* path) {
-            if (!path) return;
-            if (!mods->install_archive ||
-                !mods->install_archive(mods->ctx, path)) {
-                mod_note_error(m);
-            } else {
-                std::snprintf(m->mod_status, sizeof(m->mod_status),
-                              "%s", ui_text("Package installed. Changes apply when you press PLAY."));
-            }
-        });
+    if (mods->install_archive) {
+        if (ImGui::Button(install_label)) {
+            ui_pick_file(m, "Install Mod Package", {archive_pattern},
+                         archive_description, [m, mods](const char* path) {
+                if (!path) return;
+                if (!mods->install_archive(mods->ctx, path)) {
+                    mod_note_error(m);
+                } else {
+                    std::snprintf(m->mod_status, sizeof(m->mod_status),
+                                  "%s", ui_text("Package installed. Changes apply when you press PLAY."));
+                }
+            });
+        }
+    } else {
+        /* A host without installable packages (built-in features only, e.g.
+         * a game's cheats) gets "Enable all" in place of the install button.
+         * Titles with installable mod packages keep no "Enable all": there it
+         * would turn on features that need owner files or conflict. */
+        if (ImGui::Button(ui_text("Enable all")))
+            set_all_mod_features(m, 1);
+        if (ImGui::IsItemHovered())
+            ImGui::SetTooltip("%s", ui_text("Enable every mod feature"));
     }
-    /* No "Enable all": in a title with many mods it turns on features that
-     * need owner files or conflict with each other, all at once. */
     ImGui::SameLine();
     if (ImGui::Button(ui_text("Disable all")))
         disable_all_mod_features(m);
