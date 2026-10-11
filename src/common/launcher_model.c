@@ -443,7 +443,10 @@ void launcher_model_init(LauncherModel* m,
         if (m->num_discs == 0) m->discs = NULL;
         m->language_labels      = game->language_labels;
         m->num_languages        = game->num_languages;
-        m->disc_verify_cb       = game->disc_verify;      // real disc verdict (PSX), or NULL
+        m->tool_label           = game->tool_label;
+        m->tool_note            = game->tool_note;
+        m->tool_run_cb          = game->tool_run;
+        m->disc_verify_cb      = game->disc_verify;      // real disc verdict (PSX), or NULL
         m->import_sbi_cb        = game->import_sbi;
         m->memcard_inspect_cb   = game->memcard_inspect;  // real memcard summary (PSX), or NULL
         m->bios_verify_cb       = game->bios_verify;

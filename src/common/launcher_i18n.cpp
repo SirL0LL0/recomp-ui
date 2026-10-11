@@ -24,6 +24,12 @@ static const LauncherI18nEntry kItalian[] = {
      "Pacchetto installato. Le modifiche si applicano premendo GIOCA."},
     {"Disable all", "Disabilita tutto"},
     {"Enable all", "Abilita tutto"},
+    {"Select a verified game file first", "Prima scegli un file del gioco riconosciuto"},
+    {"Create Italian Amiga disks (ADF + WHDLoad)", "Crea i dischi Amiga in italiano (ADF + WHDLoad)"},
+    {"Builds the Italian floppy (ADF, any Amiga with 1 MB) and the WHDLoad install "
+     "from the selected disk, in the \"Amiga ITA\" folder next to the program.",
+     "Dal disco scelto crea il floppy in italiano (ADF, ogni Amiga con 1 MB) e "
+     "l'installazione WHDLoad, nella cartella \"Amiga ITA\" accanto al programma."},
     {"Enable every mod feature", "Abilita tutte le funzioni mod"},
     {"Disable every installed mod feature", "Disabilita tutte le funzioni mod installate"},
     {"Search features, groups, packages...", "Cerca funzioni, gruppi, pacchetti..."},

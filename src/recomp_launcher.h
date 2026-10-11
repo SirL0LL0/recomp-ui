@@ -2370,8 +2370,18 @@ typedef struct RecompLauncherCGameInfo {
      * stability; NULL/0 = only expected_crc. */
     const uint32_t*    accepted_crcs;
     int                num_accepted_crcs;
+    /* Host tool on the selected game file (e.g. build patched floppy images
+     * for real hardware from the player's disc). Shown in Settings under the
+     * Language row as a button (tool_label) with tool_note as help; runs on
+     * the UI thread, so keep it short. Returns 1 on success; msg (always
+     * filled) is shown under the button. Appended for ABI stability;
+     * NULL = no button. */
+    const char*        tool_label;
+    const char*        tool_note;
+    int  (*tool_run)(const char* rom_path, char* msg, size_t msg_cap);
 } RecompLauncherCGameInfo;
 #define RECOMP_LAUNCHER_HAS_ACCEPTED_CRCS 1
+#define RECOMP_LAUNCHER_HAS_TOOL 1
 #define RECOMP_LAUNCHER_HAS_NETPLAY_VIEW 1
 #define RECOMP_LAUNCHER_HAS_ROM_PATTERNS 1
 /* Hosts #ifdef on this to stay source-compatible with older recomp-ui that

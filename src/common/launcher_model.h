@@ -486,6 +486,12 @@ typedef struct {
     const char* rom_noun;             // "ROM" default; e.g. "Disc" for PSX
     const char* const* language_labels;  // borrowed; NULL/num_languages==0 => no Localization menu
     int      num_languages;
+    /* host tool (GameInfo.tool_*): button under Language, last result */
+    const char* tool_label;              // borrowed
+    const char* tool_note;               // borrowed
+    int  (*tool_run_cb)(const char* rom_path, char* msg, size_t msg_cap);
+    char tool_msg[768];
+    bool tool_ok;
 
     // ---- inferred SystemProfile (launcher_system.h) ----
     // Derived once in launcher_model_init() from the ABI GameInfo's `platform`

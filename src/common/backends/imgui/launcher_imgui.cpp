@@ -4580,6 +4580,29 @@ void draw_audio_controls(LauncherModel* m, const LauncherTheme& th) {
         if (ImGui::Button(ui_text(launcher_model_language_label(m)), ImVec2(px(SETTINGS_CTRL_W), px(30))))
             launcher_model_cycle_language(m);
     }
+
+    // Host tool on the selected game file (GameInfo.tool_*), e.g. patched
+    // floppy images for real hardware. Runs on the UI thread.
+    if (m->tool_run_cb && m->tool_label) {
+        ImGui::Dummy(ImVec2(0, px(6)));
+        const bool can = m->rom_present && m->rom_full[0];
+        if (!can) ImGui::BeginDisabled();
+        if (ImGui::Button(ui_text(m->tool_label), ImVec2(-1, px(30)))) {
+            m->tool_msg[0] = '\0';
+            m->tool_ok = m->tool_run_cb(m->rom_full, m->tool_msg, sizeof(m->tool_msg)) != 0;
+        }
+        if (!can) {
+            ImGui::EndDisabled();
+            if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                ImGui::SetTooltip("%s", ui_text("Select a verified game file first"));
+        }
+        ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x);
+        if (m->tool_note && m->tool_note[0])
+            ImGui::TextColored(col(th.text_muted), "%s", ui_text(m->tool_note));
+        if (m->tool_msg[0])
+            ImGui::TextColored(col(m->tool_ok ? th.good : th.warn), "%s", m->tool_msg);
+        ImGui::PopTextWrapPos();
+    }
 }
 
 // Audio module adapter — same AutoResizeY-vs-fixed-row_h sizing pattern as
