@@ -42,6 +42,11 @@ static const char* const kPanelsDashboardAmiga[]  = { "game", "mouse_keyboard", 
 static const char* const kPanelsControllerAmiga[] = { NULL };
 static const char* const kPanelsSettingsAmiga[] = { "video", "audio", NULL };
 
+// ---- screen model -------------------------------------------------------------
+// The runner presents either sharp square pixels or a Commodore 1084S monitor
+// shader (curvature, beam-width scanlines, RGB phosphor mask, glow, 4:3).
+static const char* const kAmigaScreenKinds[] = { "Sharp", "Commodore 1084S" };
+
 // ---- game file-picker filter ----------------------------------------------------
 static const char* const kAmigaRomPatterns[] = { "*.adf", "*.bin" };
 #define LNG_AMIGA_ROM_PATTERN_COUNT \
@@ -64,7 +69,7 @@ static const SystemProfile kSystemProfileAmiga = {
     /* save */    { SAVE_NONE, 0, NULL },
     /* video */   {
         /*window_scale*/1, /*fullscreen*/1, /*linear_filter*/1, /*widescreen*/0,
-        /*renderer*/0, /*supersampling*/0, /*screen_kind*/0, /*frame_interp*/0, /*aspect*/0,
+        /*renderer*/0, /*supersampling*/0, /*screen_kind*/1, /*frame_interp*/0, /*aspect*/0,
         /*texture_filter*/0, /*antialiasing*/0, /*spu_hq*/0, /*skip_fmv*/0, /*turbo_loads*/0,
         /*bios*/0, /*deadzone*/0,
         /*widescreen_cells*/0,
@@ -74,8 +79,8 @@ static const SystemProfile kSystemProfileAmiga = {
     /* panels_dashboard  */ kPanelsDashboardAmiga,
     /* panels_settings   */ kPanelsSettingsAmiga,
     /* panels_controller */ kPanelsControllerAmiga,
-    /* screen_kind_names */ NULL,
-    /* screen_kind_count */ 0,
+    /* screen_kind_names */ kAmigaScreenKinds,
+    /* screen_kind_count */ 2,
     /* rom_filter        */ { kAmigaRomPatterns, LNG_AMIGA_ROM_PATTERN_COUNT,
                               "Amiga disk image (.adf) or memory image (.bin)" },
     /* renderer_labels   */ NULL,
@@ -94,6 +99,7 @@ static inline void launcher_profile_apply_amiga(RecompLauncherCGameInfo* gi) {
     gi->platform = "COMMODORE AMIGA";
     gi->rom_noun = "DISK";
     gi->widescreen_supported = 0;
+    gi->has_screen_kind = 1;            // Sharp / Commodore 1084S
 }
 
 #ifdef __cplusplus
