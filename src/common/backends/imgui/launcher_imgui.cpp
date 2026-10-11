@@ -3749,7 +3749,7 @@ static void draw_aspect_row(LauncherModel* m, const LauncherTheme& th) {
                         : "Aspect ratio",
                     th, ctrl_w);
     ImGui::PushID("aspect_ratio");
-    if (ImGui::Button(launcher_model_aspect_label(m), ImVec2(px(180), px(30))))
+    if (ImGui::Button(ui_text(launcher_model_aspect_label(m)), ImVec2(px(180), px(30))))
         launcher_model_cycle_aspect(m);
     if (m->aspect_experimental) {
         ImGui::SameLine(0, px(8));

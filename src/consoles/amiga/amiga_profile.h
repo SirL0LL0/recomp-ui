@@ -48,12 +48,12 @@ static const char* const kPanelsControllerAmiga[] = { "controller_config", NULL 
 static const char* const kPanelsSettingsAmiga[] = { "video", "audio", NULL };
 
 // ---- screen model -------------------------------------------------------------
-// The runner presents sharp square pixels or one of its CRT shaders: a
-// Commodore 1084S monitor (curvature, beam-width scanlines, RGB phosphor
-// mask, glow), an Easymode-style flat CRT (Lanczos, gaussian beam, light dot
-// mask), a Trinitron aperture grille, or plain scanlines. CRTs are 4:3.
+// The runner presents sharp pixels or one of its CRT shaders: a Commodore
+// 1084S monitor (Lanczos, gaussian beam, slot mask, halation, light
+// curvature), an Easymode-style flat CRT, or plain scanlines. The pixel
+// shape (PAL 4:3 or square) is the separate aspect setting (aspect_labels).
 static const char* const kAmigaScreenKinds[] = {
-    "Sharp", "Commodore 1084S", "CRT Easymode", "CRT Aperture", "Scanlines" };
+    "Sharp", "Commodore 1084S", "CRT Easymode", "Scanlines" };
 #define LNG_AMIGA_SCREEN_KIND_COUNT \
     ((int)(sizeof(kAmigaScreenKinds) / sizeof(kAmigaScreenKinds[0])))
 
@@ -109,7 +109,7 @@ static inline void launcher_profile_apply_amiga(RecompLauncherCGameInfo* gi) {
     gi->platform = "COMMODORE AMIGA";
     gi->rom_noun = "DISK";
     gi->widescreen_supported = 0;
-    gi->has_screen_kind = 1;            // Sharp / 1084S / Easymode / Aperture / Scanlines
+    gi->has_screen_kind = 1;            // Sharp / 1084S / Easymode / Scanlines
     gi->has_integer_scale = 1;          // pixel perfect: whole multiples of the game's lines
     gi->settings_bindings = 1;          // the runner consumes the key/pad chips
 }
