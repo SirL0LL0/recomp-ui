@@ -53,7 +53,7 @@ static const char* const kPanelsSettingsAmiga[] = { "video", "audio", NULL };
 static const char* const kAmigaScreenKinds[] = { "Sharp", "Commodore 1084S" };
 
 // ---- game file-picker filter ----------------------------------------------------
-static const char* const kAmigaRomPatterns[] = { "*.adf", "*.bin" };
+static const char* const kAmigaRomPatterns[] = { "*.ipf", "*.adf", "*.bin" };
 #define LNG_AMIGA_ROM_PATTERN_COUNT \
     ((int)(sizeof(kAmigaRomPatterns) / sizeof(kAmigaRomPatterns[0])))
 
@@ -87,7 +87,7 @@ static const SystemProfile kSystemProfileAmiga = {
     /* screen_kind_names */ kAmigaScreenKinds,
     /* screen_kind_count */ 2,
     /* rom_filter        */ { kAmigaRomPatterns, LNG_AMIGA_ROM_PATTERN_COUNT,
-                              "Amiga disk image (.adf) or memory image (.bin)" },
+                              "Amiga disk image (.ipf/.adf) or memory image (.bin)" },
     /* renderer_labels   */ NULL,
     /* hide_audio_freq   */ 0,
     /* brand             */ "brand_amiga.tga",

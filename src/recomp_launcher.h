@@ -2364,7 +2364,14 @@ typedef struct RecompLauncherCGameInfo {
     const char*        quality_reason;
     void (*quality_apply)(int preset, RecompLauncherCSettings* s);
     int  (*quality_redetect)(void);
+    /* More whole-file CRC32s the game accepts besides expected_crc (games
+     * shipped on several dumps, e.g. an Amiga IPF and an ADF). The picked file
+     * is "recognized" when it matches any of them. Appended for ABI
+     * stability; NULL/0 = only expected_crc. */
+    const uint32_t*    accepted_crcs;
+    int                num_accepted_crcs;
 } RecompLauncherCGameInfo;
+#define RECOMP_LAUNCHER_HAS_ACCEPTED_CRCS 1
 #define RECOMP_LAUNCHER_HAS_NETPLAY_VIEW 1
 #define RECOMP_LAUNCHER_HAS_ROM_PATTERNS 1
 /* Hosts #ifdef on this to stay source-compatible with older recomp-ui that

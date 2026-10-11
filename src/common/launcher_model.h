@@ -426,6 +426,8 @@ typedef struct {
     // Expected fingerprint, borrowed from the game's C-ABI struct.
     uint32_t        expected_crc;
     int             has_expected_crc;
+    const uint32_t* accepted_crcs;      // GameInfo.accepted_crcs (borrowed)
+    int             num_accepted_crcs;
     const uint8_t (*known_sha256)[32];
     size_t          num_known_sha256;
     const char* const* known_sha1_hex;   // accepted SHA-1 (40-hex), cartridge gate

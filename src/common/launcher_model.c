@@ -381,6 +381,8 @@ void launcher_model_init(LauncherModel* m,
         m->rom_cache_path       = game->rom_cache_path;
         m->expected_crc         = game->expected_crc;
         m->has_expected_crc     = game->has_expected_crc;
+        m->accepted_crcs        = game->accepted_crcs;
+        m->num_accepted_crcs    = game->num_accepted_crcs;
         m->known_sha256         = game->known_sha256;
         m->known_sha1_hex       = game->known_sha1_hex;
         m->num_known_sha1       = game->num_known_sha1;
@@ -1367,6 +1369,8 @@ void launcher_model_set_rom(LauncherModel* m, const char* path) {
                         uint8_t  sha[32];
                         recompui_sha256_compute(body, blen, sha);
                         m->crc_match = m->has_expected_crc && crc == m->expected_crc;
+                        for (int k = 0; m->accepted_crcs && k < m->num_accepted_crcs; ++k)
+                            if (crc == m->accepted_crcs[k]) m->crc_match = true;
                         for (size_t k = 0; k < m->num_known_sha256; ++k)
                             if (memcmp(sha, m->known_sha256[k], 32) == 0) {
                                 m->sha_match = true;
