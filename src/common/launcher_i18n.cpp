@@ -27,6 +27,7 @@ static const LauncherI18nEntry kItalian[] = {
     {"Enable all", "Abilita tutto"},
     {"Select a verified game file first", "Prima scegli un file del gioco riconosciuto"},
     {"No %s loaded", "Nessun %s"},
+    {"(none)", "(nessuno)"},
     {"%s verified", "%s verificato"},
     {"%s not recognized", "%s non riconosciuto"},
     {"DISK", "disco"},

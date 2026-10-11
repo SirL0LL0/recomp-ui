@@ -2248,7 +2248,7 @@ void draw_game_panel(LauncherModel* m, const LauncherTheme& th, bool fill_h = fa
         // beside it, which reads as a bug.
         if (!disc_verdict && m->region[0])
             kv_row("Region", m->region, th, false, false);
-        kv_row("File",   m->rom_file, th, false, false);
+        kv_row("File",   m->rom_present ? m->rom_file : ui_text("(none)"), th, false, false);
         ImGui::EndTable();
     }
     ImGui::Dummy(ImVec2(0, px(12)));
