@@ -34,6 +34,7 @@
 #include "consoles/genesis/genesis_profile.h"
 #include "consoles/gb/gb_profile.h"
 #include "consoles/nds/nds_profile.h"
+#include "consoles/amiga/amiga_profile.h"
 #include <string.h>
 
 #ifdef __cplusplus
@@ -69,6 +70,7 @@ static inline int launcher_profile_apply(const char* name, RecompLauncherCGameIn
     if (launcher_console_is_n64(name))  { launcher_profile_apply_n64(gi);  return 1; }
     if (launcher_console_is_nes(name))  { launcher_profile_apply_nes(gi);  return 1; }
     if (launcher_console_is_genesis(name)) { launcher_profile_apply_genesis(gi); return 1; }
+    if (launcher_console_is_amiga(name)) { launcher_profile_apply_amiga(gi); return 1; }
     if (launcher_console_is_gbc(name))  { launcher_profile_apply_gbc(gi);  return 1; }
     if (launcher_console_is_gb(name))   { launcher_profile_apply_gb(gi);   return 1; }
     if (launcher_console_is_nds(name))  { launcher_profile_apply_nds(gi);  return 1; }

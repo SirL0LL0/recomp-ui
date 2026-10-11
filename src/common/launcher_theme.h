@@ -278,6 +278,27 @@ static inline LauncherTheme launcher_theme_gbc(void) {
     return t;
 }
 
+// "Commodore Amiga" theme. Workbench 1.3: the deep Amiga blue ground, white
+// text and the Workbench orange as the one accent for brand + primary action.
+// CRT scanlines stay ON (TV/1084 monitor era, same rationale as the default).
+static inline LauncherTheme launcher_theme_amiga(void) {
+    LauncherTheme t = launcher_theme_default();   // inherit spacing/type/dims
+    t.background      = lng_rgba(0.016f, 0.067f, 0.157f, 1.0f); // #041128 night Workbench blue
+    t.background2     = lng_rgba(0.027f, 0.106f, 0.235f, 1.0f); // #071B3C lifted center
+    t.panel           = lng_rgba(0.035f, 0.133f, 0.282f, 1.0f); // #092248 card
+    t.panel_hovered   = lng_rgba(0.051f, 0.200f, 0.400f, 1.0f); // #0D3366
+    t.control         = lng_rgba(0.043f, 0.161f, 0.333f, 1.0f); // #0B2955 button
+    t.control_hovered = lng_rgba(0.000f, 0.333f, 0.667f, 1.0f); // #0055AA Workbench blue
+    t.border          = lng_rgba(0.106f, 0.271f, 0.471f, 1.0f); // #1B4578 hairline
+    t.accent          = lng_rgba(1.000f, 0.533f, 0.000f, 1.0f); // #FF8800 Workbench orange
+    t.accent_dim      = lng_rgba(0.800f, 0.400f, 0.000f, 1.0f); // #CC6600 pressed/gradient
+    t.accent_text     = lng_rgba(0.0f, 0.0f, 0.0f, 1.0f);       // black on orange, as on WB
+    t.accent2         = t.accent;
+    t.text            = lng_rgba(1.0f, 1.0f, 1.0f, 1.0f);       // Workbench white
+    t.text_muted      = lng_rgba(0.600f, 0.678f, 0.800f, 1.0f); // #99ADCC
+    t.scanlines       = 1;
+    return t;
+}
 // Pick a built-in theme by name ("psx" -> PlayStation, "gba" -> Game Boy
 // Advance, "gbc" -> Game Boy Color, "gb" -> Game Boy (DMG), "n64" -> Nintendo
 // 64, "nes" -> Nintendo Entertainment System, "genesis" -> Sega Genesis;
@@ -311,6 +332,9 @@ static inline LauncherTheme launcher_theme_by_name(const char* name) {
     if (name && (name[0] == 'g' || name[0] == 'G') &&
         (name[1] == 'e' || name[1] == 'E'))
         return launcher_theme_genesis();
+    if (name && (name[0] == 'a' || name[0] == 'A') &&
+        (name[1] == 'm' || name[1] == 'M'))
+        return launcher_theme_amiga();
     return launcher_theme_default();
 }
 

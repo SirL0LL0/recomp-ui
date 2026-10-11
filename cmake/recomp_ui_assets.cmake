@@ -62,6 +62,10 @@ set(_RUI_CONSOLE_ASSETS_gb
     "${RUI_ASSETS}/consoles/gb/img/brand_gb.tga"
     "${RUI_ASSETS}/consoles/gb/img/brand_gbc.tga")
 
+set(_RUI_CONSOLE_ASSETS_amiga
+    "${RUI_ASSETS}/consoles/amiga/img/pad_amiga.tga"
+    "${RUI_ASSETS}/consoles/amiga/img/brand_amiga.tga")
+
 # GBC uses the same runtime asset family as GB.
 set(_RUI_CONSOLE_ASSETS_gbc ${_RUI_CONSOLE_ASSETS_gb})
 
@@ -69,7 +73,7 @@ set(_RUI_CONSOLE_ASSETS_nds
     "${RUI_ASSETS}/consoles/nds/img/pad_nds.tga"
     "${RUI_ASSETS}/consoles/nds/img/brand_nds.tga")
 
-set(_RUI_CONSOLE_IDS snes psx gba n64 nes genesis gb nds)
+set(_RUI_CONSOLE_IDS snes psx gba n64 nes genesis gb nds amiga)
 set(_RUI_ACCEPTED_CONSOLE_IDS ${_RUI_CONSOLE_IDS} gbc)
 
 function(_recomp_ui_resolve_console_assets OUT_VAR CONSOLE)
