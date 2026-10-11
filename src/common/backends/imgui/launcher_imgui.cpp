@@ -3555,8 +3555,13 @@ void panel_mouse_keyboard_draw(LauncherModel* m, const LauncherTheme* th) {
         ImGui::TextWrapped("%s", ui_text(
             "Left and right buttons are the Amiga mouse buttons. "
             "Click in the game window to capture the pointer; the middle button or F12 releases it. "
-            "The keyboard goes straight to the Amiga keyboard."));
+            "Unbound keys go straight to the Amiga keyboard; a gamepad's left stick moves the pointer."));
         ImGui::PopStyleColor();
+        if (m->settings_bindings) {
+            ImGui::Dummy(ImVec2(0, px(th->spacing_sm)));
+            if (ImGui::Button(ui_text("Keys and gamepad...")))
+                launcher_model_open_config(m, 0);
+        }
     }
     end_panel();
 }

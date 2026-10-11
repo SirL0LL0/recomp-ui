@@ -22,24 +22,29 @@
 extern "C" {
 #endif
 
-// ---- joystick vocabulary (rebind page) ------------------------------------------
-// Port 2 joystick: four directions and one fire button. Fire 2 is the second
-// button some joysticks wire to pin 9 (POTY); few games read it.
+// ---- input vocabulary (rebind page) ---------------------------------------------
+// What a modern keyboard or gamepad can drive on the emulated Amiga: the port 2
+// joystick (four directions + fire), the two mouse buttons and the keys games
+// commonly read outside of text entry. Bindings are host-consumed
+// (GameInfo.settings_bindings): the runner reads player_key_bind/player_pad_bind
+// by these indices. Unbound keyboard keys still reach the Amiga keyboard, and
+// the left analog stick always moves the mouse pointer.
 static const ButtonDef kAmigaPadButtons[] = {
-    { "Up", 0 }, { "Down", 1 }, { "Left", 2 }, { "Right", 3 },
-    { "Fire", 4 }, { "Fire 2", 5 },
+    { "Joystick up", 0 }, { "Joystick down", 1 }, { "Joystick left", 2 }, { "Joystick right", 3 },
+    { "Joystick fire", 4 }, { "Mouse left button", 5 }, { "Mouse right button", 6 },
+    { "Space", 7 }, { "Return", 8 }, { "Backspace", 9 }, { "Escape", 10 },
 };
 #define LNG_AMIGA_PAD_BUTTON_COUNT \
     ((int)(sizeof(kAmigaPadButtons) / sizeof(kAmigaPadButtons[0])))
 
 // ---- panel composition ----------------------------------------------------------
 // Dashboard: the GAME card plus MOUSE & KEYBOARD (pointer sensitivity,
-// grab-on-start, legend) where consoles show the controller card. Amiga games
-// are played with mouse, keyboard and a one-button joystick that the runner
-// maps directly; there is no pad to rebind, so no controller-config view.
-// No save card (no SRAM; games that save write to disk). Settings: video + audio.
+// grab-on-start, legend, and the way into the rebind view) where consoles show
+// the controller card. The rebind view maps keys and gamepad buttons onto the
+// inputs above. No save card (no SRAM; games that save write to disk).
+// Settings: video + audio.
 static const char* const kPanelsDashboardAmiga[]  = { "game", "mouse_keyboard", NULL };
-static const char* const kPanelsControllerAmiga[] = { NULL };
+static const char* const kPanelsControllerAmiga[] = { "controller_config", NULL };
 static const char* const kPanelsSettingsAmiga[] = { "video", "audio", NULL };
 
 // ---- screen model -------------------------------------------------------------
@@ -61,7 +66,7 @@ static const SystemProfile kSystemProfileAmiga = {
     /* controller */ {
         kAmigaPadButtons, LNG_AMIGA_PAD_BUTTON_COUNT,
         "pad_amiga.tga", NULL, NULL,
-        /* max_players */ 2, /* has_pad_mode */ 0,
+        /* max_players */ 1, /* has_pad_mode */ 0,
         /* binds_per_input */ 1,
         NULL, 0,
         /* has_pad_binds */ 1,
@@ -100,6 +105,7 @@ static inline void launcher_profile_apply_amiga(RecompLauncherCGameInfo* gi) {
     gi->rom_noun = "DISK";
     gi->widescreen_supported = 0;
     gi->has_screen_kind = 1;            // Sharp / Commodore 1084S
+    gi->settings_bindings = 1;          // the runner consumes the key/pad chips
 }
 
 #ifdef __cplusplus
