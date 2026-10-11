@@ -33,11 +33,12 @@ static const ButtonDef kAmigaPadButtons[] = {
     ((int)(sizeof(kAmigaPadButtons) / sizeof(kAmigaPadButtons[0])))
 
 // ---- panel composition ----------------------------------------------------------
-// Dashboard: the GAME card only. Amiga games are played with mouse, keyboard
-// and a one-button joystick that the runner maps directly; there is no pad to
-// configure, so no controller card and no controller-config view.
+// Dashboard: the GAME card plus MOUSE & KEYBOARD (pointer sensitivity,
+// grab-on-start, legend) where consoles show the controller card. Amiga games
+// are played with mouse, keyboard and a one-button joystick that the runner
+// maps directly; there is no pad to rebind, so no controller-config view.
 // No save card (no SRAM; games that save write to disk). Settings: video + audio.
-static const char* const kPanelsDashboardAmiga[]  = { "game", NULL };
+static const char* const kPanelsDashboardAmiga[]  = { "game", "mouse_keyboard", NULL };
 static const char* const kPanelsControllerAmiga[] = { NULL };
 static const char* const kPanelsSettingsAmiga[] = { "video", "audio", NULL };
 

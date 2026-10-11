@@ -3531,6 +3531,36 @@ void panel_controller_draw(LauncherModel* m, const LauncherTheme* th) {
     draw_controllers_row(m, *th);
 }
 
+// MOUSE & KEYBOARD: the dashboard side card for pointer-driven computer ports
+// (Commodore Amiga). Takes the place of the controller card: the host maps
+// the mouse buttons and the keyboard directly, so there is nothing to rebind;
+// the card offers pointer sensitivity, grab-on-start and a short legend.
+void panel_mouse_keyboard_draw(LauncherModel* m, const LauncherTheme* th) {
+    if (begin_panel("mk", 0, true)) {
+        eyebrow("MOUSE & KEYBOARD");
+        const float cb = ImGui::GetFrameHeight();
+        if (m->s.pointer_sensitivity <= 0) m->s.pointer_sensitivity = 100;
+        row_label_right("Mouse sensitivity", *th, px(SETTINGS_CTRL_W));
+        int dv = 0;
+        stepper("msens", m->s.pointer_sensitivity, "%", &dv, px(SETTINGS_CTRL_W));
+        if (dv) {
+            int v = m->s.pointer_sensitivity + (dv > 0 ? 25 : -25);
+            m->s.pointer_sensitivity = v < 25 ? 25 : (v > 400 ? 400 : v);
+        }
+        row_label_right("Capture mouse on start", *th, cb);
+        bool cap = m->s.pointer_capture != 0;
+        if (ImGui::Checkbox("##mcap", &cap)) m->s.pointer_capture = cap ? 1 : 0;
+        ImGui::Dummy(ImVec2(0, px(th->spacing_sm)));
+        ImGui::PushStyleColor(ImGuiCol_Text, col(th->text_muted));
+        ImGui::TextWrapped("%s", ui_text(
+            "Left and right buttons are the Amiga mouse buttons. "
+            "Click in the game window to capture the pointer, F12 releases it. "
+            "The keyboard goes straight to the Amiga keyboard."));
+        ImGui::PopStyleColor();
+    }
+    end_panel();
+}
+
 // The dashboard COMPOSES whichever panels this game's SystemProfile lists in
 // panels_dashboard — it does not hardcode a fixed set. GAME is always
 // present; the side column stacks CONTROLLERS plus any optional modules
@@ -3541,6 +3571,9 @@ void draw_dashboard(LauncherModel* m, const LauncherTheme& th, int logical_w) {
     const SystemProfile* prof = (const SystemProfile*)m->profile;
     const LauncherPanel* game_p = find_composed(prof->panels_dashboard, "game", m);
     const LauncherPanel* ctrl_p = find_composed(prof->panels_dashboard, "controller", m);
+    // Pointer-driven computers (Amiga) compose MOUSE & KEYBOARD instead of the
+    // controller card; it takes the same right-column slot in every layout.
+    if (!ctrl_p) ctrl_p = find_composed(prof->panels_dashboard, "mouse_keyboard", m);
     const LauncherPanel* save_p = find_composed(prof->panels_dashboard, "save", m);
     const LauncherPanel* tpak_p = find_composed(prof->panels_dashboard, "tpak", m);
     // Online identity: stacks directly under the controller card in the
@@ -12433,6 +12466,7 @@ void panel_identity_draw(LauncherModel* m, const LauncherTheme* th) {
 const LauncherPanel kPanelRegistry[] = {
     { "game",              LNG_VIEW_DASHBOARD,  LNG_SLOT_MAIN, nullptr,      panel_game_draw },
     { "controller",        LNG_VIEW_DASHBOARD,  LNG_SLOT_SIDE, nullptr,      panel_controller_draw },
+    { "mouse_keyboard",    LNG_VIEW_DASHBOARD,  LNG_SLOT_SIDE, nullptr,      panel_mouse_keyboard_draw },
     { "identity",          LNG_VIEW_DASHBOARD,  LNG_SLOT_SIDE, avail_identity, panel_identity_draw },
     { "save",              LNG_VIEW_DASHBOARD,  LNG_SLOT_WIDE, avail_save,   panel_save_draw },
     { "tpak",              LNG_VIEW_DASHBOARD,  LNG_SLOT_SIDE, avail_tpak,   panel_tpak_draw },

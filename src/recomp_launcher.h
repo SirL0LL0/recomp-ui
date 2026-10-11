@@ -1564,8 +1564,16 @@ struct RecompLauncherCSettings {
      * additively; a zero-initialized host reads as unset. */
     int  quality_preset;
     int  quality_base;
+    /* Pointer-driven computer ports (the "mouse_keyboard" dashboard panel,
+     * Commodore Amiga profile). pointer_sensitivity is a percentage (25..400,
+     * 0 = unset, the host treats it as 100); pointer_capture is 0/1: grab the
+     * pointer as soon as the game window opens. Appended additively; a
+     * zero-initialized host reads as unset/off. */
+    int  pointer_sensitivity;
+    int  pointer_capture;
 };
 #define RECOMP_LAUNCHER_HAS_ZAPPER_SETTINGS 1
+#define RECOMP_LAUNCHER_HAS_POINTER_SETTINGS 1
 
 /* Largest run-ahead depth the launcher will offer for
  * RecompLauncherCSettings.run_ahead. Deeper than this and the cost (one full
