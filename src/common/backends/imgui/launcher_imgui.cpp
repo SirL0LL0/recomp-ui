@@ -3554,7 +3554,7 @@ void panel_mouse_keyboard_draw(LauncherModel* m, const LauncherTheme* th) {
         ImGui::PushStyleColor(ImGuiCol_Text, col(th->text_muted));
         ImGui::TextWrapped("%s", ui_text(
             "Left and right buttons are the Amiga mouse buttons. "
-            "Click in the game window to capture the pointer, F12 releases it. "
+            "Click in the game window to capture the pointer; the middle button or F12 releases it. "
             "The keyboard goes straight to the Amiga keyboard."));
         ImGui::PopStyleColor();
     }
