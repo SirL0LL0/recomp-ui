@@ -1,5 +1,6 @@
 #include "launcher_i18n.h"
 
+#include <cstdio>
 #include <cstring>
 
 #ifndef RECOMP_UI_LANGUAGE
@@ -25,6 +26,36 @@ static const LauncherI18nEntry kItalian[] = {
     {"Disable all", "Disabilita tutto"},
     {"Enable all", "Abilita tutto"},
     {"Select a verified game file first", "Prima scegli un file del gioco riconosciuto"},
+    {"No %s loaded", "Nessun %s"},
+    {"%s verified", "%s verificato"},
+    {"%s not recognized", "%s non riconosciuto"},
+    {"DISK", "disco"},
+    {"MOUSE & KEYBOARD", "MOUSE E TASTIERA"},
+    {"Mouse sensitivity", "Sensibilita' del mouse"},
+    {"Capture mouse on start", "Cattura il mouse all'avvio"},
+    {"Left and right buttons are the Amiga mouse buttons. "
+     "Click in the game window to capture the pointer; the middle button or F12 releases it. "
+     "Unbound keys go straight to the Amiga keyboard; a gamepad's left stick moves the pointer.",
+     "I tasti sinistro e destro sono quelli del mouse dell'Amiga. "
+     "Clicca nella finestra del gioco per catturare il puntatore; il tasto centrale o F12 lo liberano. "
+     "I tasti non associati vanno alla tastiera dell'Amiga; lo stick sinistro del joypad muove il puntatore."},
+    {"Keys and gamepad...", "Tasti e joypad..."},
+    {"AMIGA", "AMIGA"},
+    {"Amiga model", "Modello Amiga"},
+    {"A500 (original)", "A500 (originale)"},
+    {"A4000 (smooth)", "A4000 (fluido)"},
+    {"Scanlines", "Scanline"},
+    {"Joystick up", "Joystick su"},
+    {"Joystick down", "Joystick giu'"},
+    {"Joystick left", "Joystick sinistra"},
+    {"Joystick right", "Joystick destra"},
+    {"Joystick fire", "Joystick fuoco"},
+    {"Mouse left button", "Tasto sinistro del mouse"},
+    {"Mouse right button", "Tasto destro del mouse"},
+    {"Space", "Spazio"},
+    {"Return", "Invio"},
+    {"Backspace", "Backspace"},
+    {"Escape", "Esc"},
     {"Create Italian Amiga disks (ADF + WHDLoad)", "Crea i dischi Amiga in italiano (ADF + WHDLoad)"},
     {"Builds the Italian floppy (ADF, any Amiga with 1 MB) and the WHDLoad install "
      "from the selected disk, in the \"Amiga ITA\" folder next to the program.",
@@ -221,8 +252,14 @@ static const char* lookup(const LauncherI18nEntry* entries, int count,
     return english;
 }
 
+static char s_language[16];
+
+void launcher_i18n_set_language(const char* code) {
+    std::snprintf(s_language, sizeof(s_language), "%s", code ? code : "");
+}
+
 const char* launcher_i18n_language(void) {
-    return RECOMP_UI_LANGUAGE;
+    return s_language[0] ? s_language : RECOMP_UI_LANGUAGE;
 }
 
 const char* launcher_i18n_text(const char* english) {

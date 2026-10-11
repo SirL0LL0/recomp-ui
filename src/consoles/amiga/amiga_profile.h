@@ -48,9 +48,14 @@ static const char* const kPanelsControllerAmiga[] = { "controller_config", NULL 
 static const char* const kPanelsSettingsAmiga[] = { "video", "audio", NULL };
 
 // ---- screen model -------------------------------------------------------------
-// The runner presents either sharp square pixels or a Commodore 1084S monitor
-// shader (curvature, beam-width scanlines, RGB phosphor mask, glow, 4:3).
-static const char* const kAmigaScreenKinds[] = { "Sharp", "Commodore 1084S" };
+// The runner presents sharp square pixels or one of its CRT shaders: a
+// Commodore 1084S monitor (curvature, beam-width scanlines, RGB phosphor
+// mask, glow), an Easymode-style flat CRT (Lanczos, gaussian beam, light dot
+// mask), a Trinitron aperture grille, or plain scanlines. CRTs are 4:3.
+static const char* const kAmigaScreenKinds[] = {
+    "Sharp", "Commodore 1084S", "CRT Easymode", "CRT Aperture", "Scanlines" };
+#define LNG_AMIGA_SCREEN_KIND_COUNT \
+    ((int)(sizeof(kAmigaScreenKinds) / sizeof(kAmigaScreenKinds[0])))
 
 // ---- game file-picker filter ----------------------------------------------------
 static const char* const kAmigaRomPatterns[] = { "*.ipf", "*.adf", "*.bin" };
@@ -85,7 +90,7 @@ static const SystemProfile kSystemProfileAmiga = {
     /* panels_settings   */ kPanelsSettingsAmiga,
     /* panels_controller */ kPanelsControllerAmiga,
     /* screen_kind_names */ kAmigaScreenKinds,
-    /* screen_kind_count */ 2,
+    /* screen_kind_count */ LNG_AMIGA_SCREEN_KIND_COUNT,
     /* rom_filter        */ { kAmigaRomPatterns, LNG_AMIGA_ROM_PATTERN_COUNT,
                               "Amiga disk image (.ipf/.adf) or memory image (.bin)" },
     /* renderer_labels   */ NULL,
@@ -104,7 +109,7 @@ static inline void launcher_profile_apply_amiga(RecompLauncherCGameInfo* gi) {
     gi->platform = "COMMODORE AMIGA";
     gi->rom_noun = "DISK";
     gi->widescreen_supported = 0;
-    gi->has_screen_kind = 1;            // Sharp / Commodore 1084S
+    gi->has_screen_kind = 1;            // Sharp / 1084S / Easymode / Aperture / Scanlines
     gi->settings_bindings = 1;          // the runner consumes the key/pad chips
 }
 

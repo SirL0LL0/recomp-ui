@@ -7,6 +7,7 @@
 #include "launcher_system.h"
 
 #include "crc32.h"
+#include "launcher_i18n.h"
 #include "consoles/psx/memcard_format.h"   // PSX-specific; used only under SAVE_MEMCARD
 #include "sha256.h"
 #include "sha1.h"
@@ -446,6 +447,11 @@ void launcher_model_init(LauncherModel* m,
         m->tool_label           = game->tool_label;
         m->tool_note            = game->tool_note;
         m->tool_run_cb          = game->tool_run;
+        m->host_options_title   = game->host_options_title;
+        m->host_options         = game->host_options;
+        m->num_host_options     = game->num_host_options > 4 ? 4 : game->num_host_options;
+        m->ui_languages         = game->ui_languages;
+        m->boxart_only_verified = game->boxart_only_verified != 0;
         m->disc_verify_cb      = game->disc_verify;      // real disc verdict (PSX), or NULL
         m->import_sbi_cb        = game->import_sbi;
         m->memcard_inspect_cb   = game->memcard_inspect;  // real memcard summary (PSX), or NULL
@@ -870,6 +876,10 @@ void launcher_model_init(LauncherModel* m,
     }
     if (m->num_languages > 0)
         m->s.language_index = clampi(m->s.language_index, 0, m->num_languages - 1);
+    launcher_model_apply_ui_language(m);
+    for (int i = 0; i < m->num_host_options; i++)
+        m->s.host_option[i] = clampi(m->s.host_option[i], 0,
+                                     m->host_options[i].num_values > 0 ? m->host_options[i].num_values - 1 : 0);
     if (m->has_deadzone_pct) {
         m->s.deadzone[0] = clampi((m->s.deadzone[0] / 5) * 5, 0, 50);
         m->s.deadzone[1] = m->s.deadzone[0];
@@ -2330,6 +2340,26 @@ void launcher_model_toggle_fullscreen(LauncherModel* m) {
 void launcher_model_cycle_language(LauncherModel* m) {
     if (m->num_languages <= 0) return;
     m->s.language_index = (m->s.language_index + 1) % m->num_languages;
+    launcher_model_apply_ui_language(m);
+}
+
+/* the launcher's own texts follow the game language (GameInfo.ui_languages) */
+void launcher_model_apply_ui_language(const LauncherModel* m) {
+    if (!m || !m->ui_languages || m->num_languages <= 0) return;
+    const char* code = m->ui_languages[clampi(m->s.language_index, 0, m->num_languages - 1)];
+    if (code) launcher_i18n_set_language(code);
+}
+
+void launcher_model_cycle_host_option(LauncherModel* m, int i) {
+    if (!m || i < 0 || i >= m->num_host_options || m->host_options[i].num_values <= 0) return;
+    m->s.host_option[i] = (clampi(m->s.host_option[i], 0, m->host_options[i].num_values - 1) + 1)
+                          % m->host_options[i].num_values;
+}
+
+const char* launcher_model_host_option_value(const LauncherModel* m, int i) {
+    if (!m || i < 0 || i >= m->num_host_options || m->host_options[i].num_values <= 0) return "";
+    const char* v = m->host_options[i].values[clampi(m->s.host_option[i], 0, m->host_options[i].num_values - 1)];
+    return v ? v : "";
 }
 
 const char* launcher_model_language_label(const LauncherModel* m) {

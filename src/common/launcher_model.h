@@ -492,6 +492,12 @@ typedef struct {
     int  (*tool_run_cb)(const char* rom_path, char* msg, size_t msg_cap);
     char tool_msg[768];
     bool tool_ok;
+    /* the game's own options and UI languages (GameInfo), borrowed */
+    const char* host_options_title;
+    const RecompLauncherCHostOption* host_options;
+    int  num_host_options;
+    const char* const* ui_languages;
+    bool boxart_only_verified;
 
     // ---- inferred SystemProfile (launcher_system.h) ----
     // Derived once in launcher_model_init() from the ABI GameInfo's `platform`
@@ -984,6 +990,9 @@ const char* launcher_model_fullscreen_label(const LauncherModel* m);  // "Off"/"
 void launcher_model_set_fullscreen(LauncherModel* m, int mode);  // 0/1/2, clamped
 void launcher_model_toggle_fullscreen(LauncherModel* m);       // binary on/off; kept for bool-style hosts
 void launcher_model_cycle_language(LauncherModel* m);          // wraps over num_languages
+void launcher_model_apply_ui_language(const LauncherModel* m);  // UI texts follow the game language
+void launcher_model_cycle_host_option(LauncherModel* m, int i);
+const char* launcher_model_host_option_value(const LauncherModel* m, int i);
 const char* launcher_model_language_label(const LauncherModel* m);
 void launcher_model_cycle_deadzone_pct(LauncherModel* m);      // 0..50 step 5, wraps; mirrors both players
 const char* launcher_model_deadzone_pct_label(const LauncherModel* m);  // "37%"

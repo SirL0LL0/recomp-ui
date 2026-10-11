@@ -1571,8 +1571,12 @@ struct RecompLauncherCSettings {
      * zero-initialized host reads as unset/off. */
     int  pointer_sensitivity;
     int  pointer_capture;
+    /* Values of the game's own options (GameInfo.host_options), by index.
+     * Appended additively; zero = the first value. */
+    int  host_option[4];
 };
 #define RECOMP_LAUNCHER_HAS_ZAPPER_SETTINGS 1
+#define RECOMP_LAUNCHER_HAS_HOST_OPTIONS 1
 #define RECOMP_LAUNCHER_HAS_POINTER_SETTINGS 1
 
 /* Largest run-ahead depth the launcher will offer for
@@ -1681,6 +1685,14 @@ typedef struct RecompLauncherCDisc {
     // Borrowed; must outlive the run_window call.
     const char* path;
 } RecompLauncherCDisc;
+
+/* One of the game's own options (GameInfo.host_options): a label and the
+ * values it cycles through. Borrowed. */
+typedef struct {
+    const char*        label;
+    const char* const* values;
+    int                num_values;
+} RecompLauncherCHostOption;
 
 typedef struct RecompLauncherCGameInfo {
     const char*    name;
@@ -2379,6 +2391,20 @@ typedef struct RecompLauncherCGameInfo {
     const char*        tool_label;
     const char*        tool_note;
     int  (*tool_run)(const char* rom_path, char* msg, size_t msg_cap);
+    /* The game's own options (up to 4), shown in Settings under their own
+     * heading (host_options_title, e.g. "AMIGA") as cycle buttons; the chosen
+     * value index rides in Settings.host_option[i]. Labels go through the
+     * launcher's translation table. Appended for ABI stability. */
+    const char*        host_options_title;
+    const RecompLauncherCHostOption* host_options;
+    int                num_host_options;
+    /* UI language code per entry of language_labels ("it", "en"): picking a
+     * language in Localization also switches the launcher's own texts.
+     * NULL = the build-time RECOMP_UI_LANGUAGE only. */
+    const char* const* ui_languages;
+    /* 1 = show the box art only once the picked file is verified (otherwise
+     * the placeholder). */
+    int                boxart_only_verified;
 } RecompLauncherCGameInfo;
 #define RECOMP_LAUNCHER_HAS_ACCEPTED_CRCS 1
 #define RECOMP_LAUNCHER_HAS_TOOL 1

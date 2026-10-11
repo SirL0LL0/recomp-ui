@@ -2209,7 +2209,11 @@ void draw_game_panel(LauncherModel* m, const LauncherTheme& th, bool fill_h = fa
         float art_h = ImGui::GetContentRegionAvail().y - reserve;
         if (art_h > px(368.0f)) art_h = px(368.0f);   // allow a larger hero box art (~15% bigger than before)
         if (art_h < px(248.0f)) art_h = px(248.0f);   // keep it big enough to balance the side column
-        hero_boxart_centered(g_boxart, art_h, availw);
+        // A game that asks for it shows its box art only once the picked file
+        // is verified; until then the placeholder.
+        static const LauncherTexture k_nessuna{};
+        const bool art_ok = !m->boxart_only_verified || launcher_model_rom_verified(m);
+        hero_boxart_centered(art_ok ? g_boxart : k_nessuna, art_h, availw);
     }
     ImGui::Dummy(ImVec2(0, px(10)));
 
@@ -2220,9 +2224,10 @@ void draw_game_panel(LauncherModel* m, const LauncherTheme& th, bool fill_h = fa
     } else {
         const bool verified = launcher_model_rom_verified(m);
         char line[64];
-        if (!m->rom_present)   snprintf(line, sizeof(line), "No %s loaded", noun);
-        else if (verified)     snprintf(line, sizeof(line), "%s verified", noun);
-        else                   snprintf(line, sizeof(line), "%s not recognized", noun);
+        if (!m->rom_present)   snprintf(line, sizeof(line), ui_text("No %s loaded"), ui_text(noun));
+        else if (verified)     snprintf(line, sizeof(line), ui_text("%s verified"), ui_text(noun));
+        else                   snprintf(line, sizeof(line), ui_text("%s not recognized"), ui_text(noun));
+        if (line[0] >= 'a' && line[0] <= 'z') line[0] = (char)(line[0] - 32);   // "disco verificato"
         float w = ImGui::GetTextLineHeight() + px(6) + ImGui::CalcTextSize(line).x;
         ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (availw - w) * 0.5f);
         state_mark(verified, th);
@@ -4579,6 +4584,21 @@ void draw_audio_controls(LauncherModel* m, const LauncherTheme& th) {
         row_label_right("Language", th, px(SETTINGS_CTRL_W));
         if (ImGui::Button(ui_text(launcher_model_language_label(m)), ImVec2(px(SETTINGS_CTRL_W), px(30))))
             launcher_model_cycle_language(m);
+    }
+
+    // The game's own options (GameInfo.host_options): cycle buttons under
+    // their own heading.
+    if (m->num_host_options > 0) {
+        ImGui::Dummy(ImVec2(0, px(6)));
+        eyebrow(ui_text(m->host_options_title ? m->host_options_title : "GAME"));
+        for (int i = 0; i < m->num_host_options; i++) {
+            ImGui::PushID(i);
+            row_label_right(ui_text(m->host_options[i].label), th, px(SETTINGS_CTRL_W));
+            if (ImGui::Button(ui_text(launcher_model_host_option_value(m, i)),
+                              ImVec2(px(SETTINGS_CTRL_W), px(30))))
+                launcher_model_cycle_host_option(m, i);
+            ImGui::PopID();
+        }
     }
 
     // Host tool on the selected game file (GameInfo.tool_*), e.g. patched
@@ -14022,6 +14042,7 @@ static void draw_launch_commit_progress(const LauncherTheme& th) {
 }
 
 void draw_ui(LauncherModel* m, const LauncherTheme& th, int logical_w, int logical_h) {
+    launcher_model_apply_ui_language(m);   // e.g. after Restore Defaults
     ImGuiViewport* vp = ImGui::GetMainViewport();
     ImGui::SetNextWindowPos(vp->Pos);
     ImGui::SetNextWindowSize(vp->Size);
