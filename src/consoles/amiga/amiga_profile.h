@@ -51,7 +51,7 @@ static const char* const kPanelsSettingsAmiga[] = { "video", "audio", NULL };
 // The runner presents sharp pixels or one of its CRT shaders: a Commodore
 // 1084S monitor (Lanczos, gaussian beam, slot mask, halation, light
 // curvature), an Easymode-style flat CRT, or plain scanlines. The pixel
-// shape (PAL 4:3 or square) is the separate aspect setting (aspect_labels).
+// shape (PAL 4:3, NTSC 4:3 or square) is the separate aspect setting (aspect_labels).
 static const char* const kAmigaScreenKinds[] = {
     "Sharp", "Commodore 1084S", "CRT Easymode", "Scanlines" };
 #define LNG_AMIGA_SCREEN_KIND_COUNT \

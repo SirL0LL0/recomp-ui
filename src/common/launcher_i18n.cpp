@@ -48,6 +48,7 @@ static const LauncherI18nEntry kItalian[] = {
     {"Scanlines", "Scanline"},
     {"Aspect ratio", "Rapporto d'aspetto"},
     {"PAL (4:3)", "PAL (4:3)"},
+    {"NTSC (4:3)", "NTSC (4:3)"},
     {"Square pixels", "Pixel quadrati"},
     {"Joystick up", "Joystick su"},
     {"Joystick down", "Joystick giu'"},
