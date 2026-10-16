@@ -1694,6 +1694,14 @@ typedef struct {
     int                num_values;
 } RecompLauncherCHostOption;
 
+/* One chapter of the game manual (GameInfo.manual_pages). Text is UTF-8,
+ * paragraphs split by blank lines; lines starting with "## " are sub-headings
+ * and lines starting with "- " are list items. Borrowed. */
+typedef struct {
+    const char* title;
+    const char* text;
+} RecompLauncherCManualPage;
+
 typedef struct RecompLauncherCGameInfo {
     const char*    name;
     const char*    region;
@@ -2405,7 +2413,34 @@ typedef struct RecompLauncherCGameInfo {
     /* 1 = show the box art only once the picked file is verified (otherwise
      * the placeholder). */
     int                boxart_only_verified;
+    /* ---- appended for games installed from a downloaded package (Total
+     * Chaos AGA); all optional, zero = old behaviour. */
+    /* Drop zone: until a verified file is chosen the GAME card shows a box
+     * "drag the file here" (rom_drop_hint, translated) with the Browse button
+     * inside; a file dropped anywhere on the launcher is picked as Browse
+     * would pick it. */
+    int                rom_drop_zone;
+    const char*        rom_drop_hint;
+    /* Manual: a Manual button in the header opens a page with chapters. The
+     * host returns its chapters for the launcher language ("it", "en"...),
+     * count in the return value. */
+    int  (*manual_pages)(const char* ui_lang, const RecompLauncherCManualPage** pages);
+    /* tool_run also puts the launcher's own settings back to default_settings
+     * when it succeeds (one "reset everything" button). */
+    int                tool_restores_defaults;
+    /* MOUSE & KEYBOARD card without runner settings the host does not have
+     * (sensitivity, grab on start, rebind): it shows the game language as a
+     * dropdown, pointer_legend (NULL = the stock legend) and dashboard_note. */
+    int                pointer_settings_hidden;
+    const char*        pointer_legend;
+    const char*        dashboard_note;
+    /* Host texts in the launcher language: pairs { english, translated, ...,
+     * NULL } used when the launcher language is host_text_lang ("it"). */
+    const char*        host_text_lang;
+    const char* const* host_text;
 } RecompLauncherCGameInfo;
+#define RECOMP_LAUNCHER_HAS_DROP_ZONE 1
+#define RECOMP_LAUNCHER_HAS_MANUAL 1
 #define RECOMP_LAUNCHER_HAS_ACCEPTED_CRCS 1
 #define RECOMP_LAUNCHER_HAS_TOOL 1
 #define RECOMP_LAUNCHER_HAS_NETPLAY_VIEW 1

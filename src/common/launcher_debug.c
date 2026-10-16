@@ -184,6 +184,7 @@ static bool launcher_debug_step_impl(LauncherPlatform* p, LauncherModel* m) {
         else if (strcmp(v, "controller") == 0) launcher_model_set_view(m, LNG_VIEW_CONTROLLER);
         else if (strcmp(v, "assist_tools") == 0) launcher_model_set_view(m, LNG_VIEW_ASSIST_TOOLS);
         else if (strcmp(v, "credits") == 0) launcher_model_set_view(m, LNG_VIEW_CREDITS);
+        else if (strcmp(v, "manual") == 0) launcher_model_set_view(m, LNG_VIEW_MANUAL);
         /* The LAN-vs-online fork. Reachable only by clicking NETPLAY on the
          * dashboard, which made it the one netplay page a screenshot script
          * could not open. */
@@ -194,6 +195,17 @@ static bool launcher_debug_step_impl(LauncherPlatform* p, LauncherModel* m) {
             launcher_model_set_view(m, LNG_VIEW_NETPLAY);
         }
         else if (strcmp(v, "lobby") == 0) launcher_model_set_view(m, LNG_VIEW_LOBBY);
+    } else if (strncmp(c, "lang:", 5) == 0) {
+        /* the game language (and with it the launcher's, GameInfo.ui_languages) */
+        if (m->num_languages > 0) {
+            int l = atoi(c + 5);
+            m->s.language_index = l < 0 ? 0 : (l >= m->num_languages ? m->num_languages - 1 : l);
+            launcher_model_apply_ui_language(m);
+        }
+    } else if (strncmp(c, "rom:", 4) == 0) {
+        launcher_model_set_rom(m, c + 4);          /* as Browse, or a dropped file */
+    } else if (strncmp(c, "page:", 5) == 0) {
+        m->manual_page = atoi(c + 5);
     } else if (strncmp(c, "player:", 7) == 0) {
         // Select which player the Controller view configures. Clamp to the
         // launcher's real player range (N64 profiles run up to 4) instead of

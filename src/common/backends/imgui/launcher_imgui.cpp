@@ -1960,6 +1960,29 @@ void row_window_scale(LauncherModel* m, const LauncherTheme& th) {
                               m->s.window_scale < 1 ? 1 : m->s.window_scale));
 }
 
+/* The game language: a dropdown once there are more than a few (a cycle
+ * button through thirteen languages has no "back"). Picking one also switches
+ * the launcher's texts (GameInfo.ui_languages). */
+void row_language(LauncherModel* m, const LauncherTheme& th) {
+    row_label_right("Language", th, px(SETTINGS_CTRL_W));
+    if (m->num_languages <= 3) {
+        if (ImGui::Button(ui_text(launcher_model_language_label(m)), ImVec2(px(SETTINGS_CTRL_W), px(30))))
+            launcher_model_cycle_language(m);
+        return;
+    }
+    ImGui::SetNextItemWidth(px(SETTINGS_CTRL_W));
+    if (ImGui::BeginCombo("##language", launcher_model_language_label(m))) {
+        for (int i = 0; i < m->num_languages; ++i) {
+            const char* l = m->language_labels[i] ? m->language_labels[i] : "";
+            if (ImGui::Selectable(l, i == m->s.language_index)) {
+                m->s.language_index = i;
+                launcher_model_apply_ui_language(m);
+            }
+        }
+        ImGui::EndCombo();
+    }
+}
+
 void row_fullscreen(LauncherModel* m, const LauncherTheme& th) {
     launcher_model_set_fullscreen(
         m, settings_combo_row("Fullscreen", th, "##fullscreen",
@@ -2181,6 +2204,84 @@ void draw_verdict_block(LauncherModel* m, const LauncherTheme& th, float availw)
     }
 }
 
+/* The game file picker, with the profile's (or the game's) filter. */
+static void open_rom_browser(LauncherModel* m) {
+    const SystemProfile* prof = (const SystemProfile*)m->profile;
+    const char* noun = (m->rom_noun && m->rom_noun[0]) ? m->rom_noun : "ROM";
+    char title[64];
+    snprintf(title, sizeof(title), "Select %s", noun);
+    const RomFilterSpec filter = active_rom_filter(m, prof);
+    if (filter.patterns && filter.pattern_count > 0)
+        request_rom_picker(m, title, filter.patterns, filter.pattern_count, filter.desc, false);
+    else
+        request_rom_picker(m, title, NULL, 0, NULL, false);
+}
+
+/* GameInfo.rom_drop_zone: in place of the box art until a verified file is
+ * chosen, a dashed box that says what to drag in, with Browse inside it. The
+ * drop itself is handled on the event queue (any view). */
+void draw_drop_zone(LauncherModel* m, const LauncherTheme& th, float h, float w) {
+    const ImVec2 p0 = ImGui::GetCursorScreenPos();
+    const ImVec2 p1(p0.x + w, p0.y + h);
+    ImDrawList* dl = ImGui::GetWindowDrawList();
+    dl->AddRectFilled(p0, p1, imcol(th.accent2, 0.06f), px(8));
+    /* dashed border */
+    const float d = px(10), g = px(6), t = px(2);
+    const ImU32 c = imcol(th.accent2, 0.85f);
+    for (float x = p0.x + px(8); x < p1.x - px(8); x += d + g) {
+        float x2 = x + d < p1.x - px(8) ? x + d : p1.x - px(8);
+        dl->AddLine(ImVec2(x, p0.y), ImVec2(x2, p0.y), c, t);
+        dl->AddLine(ImVec2(x, p1.y), ImVec2(x2, p1.y), c, t);
+    }
+    for (float y = p0.y + px(8); y < p1.y - px(8); y += d + g) {
+        float y2 = y + d < p1.y - px(8) ? y + d : p1.y - px(8);
+        dl->AddLine(ImVec2(p0.x, y), ImVec2(p0.x, y2), c, t);
+        dl->AddLine(ImVec2(p1.x, y), ImVec2(p1.x, y2), c, t);
+    }
+    /* arrow pointing down into the box */
+    const float ax = (p0.x + p1.x) * 0.5f, ay = p0.y + h * 0.22f;
+    dl->AddRectFilled(ImVec2(ax - px(5), ay), ImVec2(ax + px(5), ay + px(34)), c);
+    dl->AddTriangleFilled(ImVec2(ax - px(18), ay + px(30)), ImVec2(ax + px(18), ay + px(30)),
+                          ImVec2(ax, ay + px(52)), c);
+    /* the hint, each line centred ("\n" splits it; long lines wrap at spaces) */
+    const char* hint = ui_text(m->rom_drop_hint && m->rom_drop_hint[0] ? m->rom_drop_hint : "Drop a file here");
+    const float tw = w - px(32);
+    float y = ay + px(68);
+    std::string resto(hint);
+    while (!resto.empty()) {
+        const size_t nl = resto.find('\n');
+        std::string riga = resto.substr(0, nl);
+        resto = nl == std::string::npos ? std::string() : resto.substr(nl + 1);
+        while (!riga.empty()) {
+            size_t taglio = riga.size();
+            while (ImGui::CalcTextSize(riga.c_str(), riga.c_str() + taglio).x > tw) {
+                const size_t sp = riga.rfind(' ', taglio - 1);
+                if (sp == std::string::npos || sp == 0) break;
+                taglio = sp;
+            }
+            const std::string pezzo = riga.substr(0, taglio);
+            const ImVec2 ts = ImGui::CalcTextSize(pezzo.c_str());
+            ImGui::SetCursorScreenPos(ImVec2(p0.x + (w - ts.x) * 0.5f, y));
+            ImGui::TextColored(col(th.text), "%s", pezzo.c_str());
+            y += ImGui::GetTextLineHeightWithSpacing();
+            riga = taglio < riga.size() ? riga.substr(taglio + 1) : std::string();
+        }
+    }
+    ImGui::SetCursorScreenPos(ImVec2(p0.x, y));
+    const char* o = ui_text("or");
+    ImVec2 os = ImGui::CalcTextSize(o);
+    ImGui::SetCursorScreenPos(ImVec2(p0.x + (w - os.x) * 0.5f, ImGui::GetCursorScreenPos().y + px(6)));
+    ImGui::TextColored(col(th.text_muted), "%s", o);
+    const char* noun = (m->rom_noun && m->rom_noun[0]) ? m->rom_noun : "ROM";
+    char label[64];
+    snprintf(label, sizeof(label), "%s %s", ui_text("Browse For"), ui_text(noun));
+    const float bw = w * 0.7f;
+    ImGui::SetCursorScreenPos(ImVec2(p0.x + (w - bw) * 0.5f, ImGui::GetCursorScreenPos().y + px(6)));
+    if (ImGui::Button(label, ImVec2(bw, px(34)))) open_rom_browser(m);
+    ImGui::SetCursorScreenPos(ImVec2(p0.x, p1.y));
+    ImGui::Dummy(ImVec2(w, 0));
+}
+
 void draw_game_panel(LauncherModel* m, const LauncherTheme& th, bool fill_h = false) {
     if (!begin_panel("game", 0, fill_h)) { end_panel(); return; }
     // No "GAME" eyebrow: the box art itself tells the user this is the game.
@@ -2213,7 +2314,8 @@ void draw_game_panel(LauncherModel* m, const LauncherTheme& th, bool fill_h = fa
         // is verified; until then the placeholder.
         static const LauncherTexture k_nessuna{};
         const bool art_ok = !m->boxart_only_verified || launcher_model_rom_verified(m);
-        hero_boxart_centered(art_ok ? g_boxart : k_nessuna, art_h, availw);
+        if (m->rom_drop_zone && !launcher_model_rom_verified(m)) draw_drop_zone(m, th, art_h, availw);
+        else hero_boxart_centered(art_ok ? g_boxart : k_nessuna, art_h, availw);
     }
     ImGui::Dummy(ImVec2(0, px(10)));
 
@@ -2271,7 +2373,9 @@ void draw_game_panel(LauncherModel* m, const LauncherTheme& th, bool fill_h = fa
                  ui_text("Browse For"), ui_text(noun));
     if (m->import_sbi_cb)
         std::strncat(change_label, " / SBI", sizeof(change_label) - std::strlen(change_label) - 1);
-    if (ImGui::Button(change_label, ImVec2(availw, px(34)))) {
+    /* with the drop zone showing, its Browse is the one inside the box */
+    const bool in_zona = m->rom_drop_zone && !launcher_model_rom_verified(m);
+    if (!in_zona && ImGui::Button(change_label, ImVec2(availw, px(34)))) {
         // Native file dialog filter comes from the active console's
         // SystemProfile.rom_filter — never a hardcoded per-system set. Every
         // shipped profile supplies one; the fallback is console-NEUTRAL (all
@@ -3541,6 +3645,30 @@ void panel_controller_draw(LauncherModel* m, const LauncherTheme* th) {
 // the mouse buttons and the keyboard directly, so there is nothing to rebind;
 // the card offers pointer sensitivity, grab-on-start and a short legend.
 void panel_mouse_keyboard_draw(LauncherModel* m, const LauncherTheme* th) {
+    /* A host without pointer settings (GameInfo.pointer_settings_hidden): the
+     * game language right here, its own legend and a status note. */
+    if (m->pointer_settings_hidden) {
+        if (begin_panel("mk", 0, true)) {
+            if (m->num_languages > 0) {
+                eyebrow("LOCALIZATION");
+                row_language(m, *th);
+                ImGui::Dummy(ImVec2(0, px(th->spacing_md)));
+            }
+            eyebrow("MOUSE & KEYBOARD");
+            ImGui::PushStyleColor(ImGuiCol_Text, col(th->text_muted));
+            ImGui::TextWrapped("%s", ui_text(m->pointer_legend ? m->pointer_legend :
+                "Left and right buttons are the Amiga mouse buttons. "
+                "Click in the game window to capture the pointer; the middle button or F12 releases it. "
+                "Unbound keys go straight to the Amiga keyboard; a gamepad's left stick moves the pointer."));
+            ImGui::PopStyleColor();
+            if (m->dashboard_note && m->dashboard_note[0]) {
+                ImGui::Dummy(ImVec2(0, px(th->spacing_sm)));
+                ImGui::TextWrapped("%s", ui_text(m->dashboard_note));
+            }
+        }
+        end_panel();
+        return;
+    }
     if (begin_panel("mk", 0, true)) {
         eyebrow("MOUSE & KEYBOARD");
         const float cb = ImGui::GetFrameHeight();
@@ -4581,9 +4709,7 @@ void draw_audio_controls(LauncherModel* m, const LauncherTheme& th) {
     if (m->num_languages > 0) {
         ImGui::Dummy(ImVec2(0, px(6)));
         eyebrow("LOCALIZATION");
-        row_label_right("Language", th, px(SETTINGS_CTRL_W));
-        if (ImGui::Button(ui_text(launcher_model_language_label(m)), ImVec2(px(SETTINGS_CTRL_W), px(30))))
-            launcher_model_cycle_language(m);
+        row_language(m, th);
     }
 
     // The game's own options (GameInfo.host_options): cycle buttons under
@@ -4605,11 +4731,31 @@ void draw_audio_controls(LauncherModel* m, const LauncherTheme& th) {
     // floppy images for real hardware. Runs on the UI thread.
     if (m->tool_run_cb && m->tool_label) {
         ImGui::Dummy(ImVec2(0, px(6)));
-        const bool can = m->rom_present && m->rom_full[0];
+        /* A reset-everything tool needs no game file; it asks first. */
+        const bool can = m->tool_restores_defaults || (m->rom_present && m->rom_full[0]);
         if (!can) ImGui::BeginDisabled();
         if (ImGui::Button(ui_text(m->tool_label), ImVec2(-1, px(30)))) {
-            m->tool_msg[0] = '\0';
-            m->tool_ok = m->tool_run_cb(m->rom_full, m->tool_msg, sizeof(m->tool_msg)) != 0;
+            if (m->tool_restores_defaults) ImGui::OpenPopup("##tool_confirm");
+            else {
+                m->tool_msg[0] = '\0';
+                m->tool_ok = m->tool_run_cb(m->rom_full, m->tool_msg, sizeof(m->tool_msg)) != 0;
+            }
+        }
+        if (ImGui::BeginPopup("##tool_confirm")) {
+            ImGui::TextUnformatted(ui_text("Reset everything?"));
+            ImGui::Dummy(ImVec2(0, px(4)));
+            if (ImGui::Button(ui_text("Yes, reset"))) {
+                m->tool_msg[0] = '\0';
+                m->tool_ok = m->tool_run_cb(m->rom_full, m->tool_msg, sizeof(m->tool_msg)) != 0;
+                if (m->tool_ok && launcher_model_can_restore_defaults(m)) {
+                    launcher_model_restore_defaults(m);
+                    launcher_model_apply_ui_language(m);
+                }
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button(ui_text("Cancel"))) ImGui::CloseCurrentPopup();
+            ImGui::EndPopup();
         }
         if (!can) {
             ImGui::EndDisabled();
@@ -4620,7 +4766,7 @@ void draw_audio_controls(LauncherModel* m, const LauncherTheme& th) {
         if (m->tool_note && m->tool_note[0])
             ImGui::TextColored(col(th.text_muted), "%s", ui_text(m->tool_note));
         if (m->tool_msg[0])
-            ImGui::TextColored(col(m->tool_ok ? th.good : th.warn), "%s", m->tool_msg);
+            ImGui::TextColored(col(m->tool_ok ? th.good : th.warn), "%s", ui_text(m->tool_msg));
         ImGui::PopTextWrapPos();
     }
 }
@@ -5527,6 +5673,83 @@ void draw_assist_tools(LauncherModel* m, const LauncherTheme& th) {
     end_panel();
 }
 
+void draw_credits(LauncherModel* m, const LauncherTheme& th);
+
+/* The game manual (GameInfo.manual_pages): chapter list on the left, the
+ * chapter on the right. Light markup: "## " starts a sub-heading, "- " a
+ * list item, a blank line a new paragraph. */
+void draw_manual(LauncherModel* m, const LauncherTheme& th) {
+    const RecompLauncherCManualPage* pages = nullptr;
+    const int n = m->manual_pages_cb ? m->manual_pages_cb(launcher_i18n_language(), &pages) : 0;
+    if (!pages || n <= 0) { draw_credits(m, th); return; }
+    if (m->manual_page < 0 || m->manual_page >= n) m->manual_page = 0;
+    const float gap = px(th.spacing_md);
+    const float list_w = px(250);
+    const float h = ImGui::GetContentRegionAvail().y;
+    begin_container("man_l", ImVec2(list_w, h));
+    if (begin_panel("manual_toc", 0, true)) {
+        eyebrow("MANUAL");
+        for (int i = 0; i < n; ++i) {
+            ImGui::PushID(i);
+            if (ImGui::Selectable(pages[i].title ? pages[i].title : "", i == m->manual_page,
+                                  0, ImVec2(0, px(26))))
+                m->manual_page = i;
+            ImGui::PopID();
+        }
+    }
+    end_panel();
+    end_container();
+    ImGui::SameLine(0, gap);
+    begin_container("man_r", ImVec2(0, h));
+    if (begin_panel("manual_text", 0, true)) {
+        const RecompLauncherCManualPage& p = pages[m->manual_page];
+        ImGui::PushStyleColor(ImGuiCol_Text, col(th.accent2));
+        ImGui::TextUnformatted(p.title ? p.title : "");
+        ImGui::PopStyleColor();
+        ImGui::Dummy(ImVec2(0, px(6)));
+        ImGui::PushTextWrapPos();
+        const char* t = p.text ? p.text : "";
+        std::string par;
+        auto flush = [&]() {
+            if (par.empty()) return;
+            ImGui::PushStyleColor(ImGuiCol_Text, col(th.text));
+            ImGui::TextWrapped("%s", par.c_str());
+            ImGui::PopStyleColor();
+            ImGui::Dummy(ImVec2(0, px(6)));
+            par.clear();
+        };
+        while (*t) {
+            const char* e = std::strchr(t, '\n');
+            std::string line(t, e ? (size_t)(e - t) : std::strlen(t));
+            t = e ? e + 1 : t + line.size();
+            if (line.empty()) { flush(); continue; }
+            if (line.rfind("## ", 0) == 0) {
+                flush();
+                ImGui::Dummy(ImVec2(0, px(4)));
+                ImGui::PushStyleColor(ImGuiCol_Text, col(th.accent2));
+                ImGui::TextWrapped("%s", line.c_str() + 3);
+                ImGui::PopStyleColor();
+                continue;
+            }
+            if (line.rfind("- ", 0) == 0) {
+                flush();
+                ImGui::PushStyleColor(ImGuiCol_Text, col(th.text));
+                ImGui::Bullet();
+                ImGui::SameLine();
+                ImGui::TextWrapped("%s", line.c_str() + 2);
+                ImGui::PopStyleColor();
+                continue;
+            }
+            if (!par.empty()) par += ' ';
+            par += line;
+        }
+        flush();
+        ImGui::PopTextWrapPos();
+    }
+    end_panel();
+    end_container();
+}
+
 void draw_credits(LauncherModel* m, const LauncherTheme& th) {
     if (!begin_panel("credits_page", 0, false)) {
         end_panel();
@@ -5537,7 +5760,7 @@ void draw_credits(LauncherModel* m, const LauncherTheme& th) {
     ImGui::PushTextWrapPos();
     ImGui::TextWrapped("%s",
         (m->credits_text && m->credits_text[0])
-            ? m->credits_text
+            ? ui_text(m->credits_text)
             : "Credits have not been supplied for this title.");
     ImGui::PopTextWrapPos();
     ImGui::PopStyleColor();
@@ -12570,7 +12793,11 @@ void draw_footer(LauncherModel* m, const LauncherTheme& th, float footer_h) {
                launcher_model_can_restore_defaults(m)) {
         ImGui::SetCursorScreenPos(
             ImVec2(origin.x, cta_y + (play_h - px(34.0f)) * 0.5f));
-        if (ImGui::Button(ui_text("Restore Defaults"), ImVec2(px(150.0f), px(34.0f))))
+        /* as wide as its (translated) label needs, at least 150 */
+        const char* rd = ui_text("Restore Defaults");
+        float rdw = ImGui::CalcTextSize(rd).x + ImGui::GetStyle().FramePadding.x * 2 + px(8);
+        if (rdw < px(150.0f)) rdw = px(150.0f);
+        if (ImGui::Button(rd, ImVec2(rdw, px(34.0f))))
             launcher_model_request_restore_defaults(m);
     }
     if (m->view == LNG_VIEW_LOBBY) {
@@ -14138,6 +14365,7 @@ void draw_ui(LauncherModel* m, const LauncherTheme& th, int logical_w, int logic
         if (m->view == LNG_VIEW_DASHBOARD) {
             const int count = 1 + (m->mods ? 1 : 0) +
                               (m->has_assist_tools ? 1 : 0) +
+                              (m->manual_pages_cb ? 1 : 0) +
                               ((m->credits_text && m->credits_text[0]) ? 1 : 0);
             const float w = px(110.0f);
             const float total = w * count + gap * (count - 1);
@@ -14153,6 +14381,11 @@ void draw_ui(LauncherModel* m, const LauncherTheme& th, int logical_w, int logic
                 ImGui::SameLine(0, gap);
                 if (ImGui::Button(ui_text("Assist Tools"), ImVec2(w, px(34))))
                     launcher_model_set_view(m, LNG_VIEW_ASSIST_TOOLS);
+            }
+            if (m->manual_pages_cb) {
+                ImGui::SameLine(0, gap);
+                if (ImGui::Button(ui_text("Manual"), ImVec2(w, px(34))))
+                    launcher_model_set_view(m, LNG_VIEW_MANUAL);
             }
             if (m->credits_text && m->credits_text[0]) {
                 ImGui::SameLine(0, gap);
@@ -14236,6 +14469,8 @@ void draw_ui(LauncherModel* m, const LauncherTheme& th, int logical_w, int logic
         case LNG_VIEW_ASSIST_TOOLS: draw_assist_tools(m, th);        break;
         case LNG_VIEW_CREDITS:      draw_credits(m, th);             break;
         case LNG_VIEW_LOBBY:        draw_lobby(m, th);               break;
+        case LNG_VIEW_MANUAL:       draw_manual(m, th);              break;
+        default: break;
     }
     end_container();
 
@@ -14850,6 +15085,18 @@ extern "C" LngAction launcher_backend_run(LauncherPlatform* p,
                 LNG_ImplSDL_ProcessEvent(&ev);
                 continue;
             }
+#if !defined(LNG_SDL3)
+            /* A file dragged onto the launcher (GameInfo.rom_drop_zone): picked
+             * as Browse would pick it, from any view. */
+            if (ev.type == SDL_DROPFILE) {
+                if (m->rom_drop_zone && ev.drop.file) {
+                    launcher_model_set_rom(m, ev.drop.file);
+                    launcher_model_set_view(m, LNG_VIEW_DASHBOARD);
+                }
+                if (ev.drop.file) SDL_free(ev.drop.file);
+                continue;
+            }
+#endif
             if (try_capture(m, ev)) continue;
             /* Arm gamepad navigation on the first REAL pad input.
              *

@@ -14,6 +14,13 @@ struct LauncherI18nEntry {
 
 static const LauncherI18nEntry kItalian[] = {
     {"Settings", "Impostazioni"},
+    {"Manual", "Manuale"},
+    {"MANUAL", "MANUALE"},
+    {"or", "oppure"},
+    {"Reset everything?", "Ripristinare tutto?"},
+    {"Yes, reset", "Si', ripristina"},
+    {"Cancel", "Annulla"},
+    {"Drop a file here", "Trascina qui un file"},
     {"Mods", "Mod"},
     {"Assist Tools", "Strumenti"},
     {"Credits", "Crediti"},
@@ -258,6 +265,20 @@ static const char* lookup(const LauncherI18nEntry* entries, int count,
 }
 
 static char s_language[16];
+static char s_host_language[16];
+static const char* const* s_host_pairs;
+
+void launcher_i18n_set_host_table(const char* code, const char* const* pairs) {
+    std::snprintf(s_host_language, sizeof(s_host_language), "%s", code ? code : "");
+    s_host_pairs = pairs;
+}
+
+static const char* host_lookup(const char* language, const char* english) {
+    if (!s_host_pairs || !english || std::strncmp(language, s_host_language, 2) != 0) return nullptr;
+    for (int i = 0; s_host_pairs[i] && s_host_pairs[i + 1]; i += 2)
+        if (std::strcmp(s_host_pairs[i], english) == 0) return s_host_pairs[i + 1];
+    return nullptr;
+}
 
 void launcher_i18n_set_language(const char* code) {
     std::snprintf(s_language, sizeof(s_language), "%s", code ? code : "");
@@ -274,6 +295,7 @@ const char* launcher_i18n_text(const char* english) {
         std::strcmp(language, "en-US") == 0) {
         return english ? english : "";
     }
+    if (const char* h = host_lookup(language, english)) return h;
     if (std::strcmp(language, "it") == 0 ||
         std::strcmp(language, "it-IT") == 0) {
         return lookup(kItalian, (int)(sizeof(kItalian) / sizeof(kItalian[0])),

@@ -452,7 +452,16 @@ void launcher_model_init(LauncherModel* m,
         m->num_host_options     = game->num_host_options > 4 ? 4 : game->num_host_options;
         m->ui_languages         = game->ui_languages;
         m->boxart_only_verified = game->boxart_only_verified != 0;
-        m->disc_verify_cb      = game->disc_verify;      // real disc verdict (PSX), or NULL
+        m->rom_drop_zone        = game->rom_drop_zone != 0;
+        m->rom_drop_hint        = game->rom_drop_hint;
+        m->manual_pages_cb      = game->manual_pages;
+        m->tool_restores_defaults = game->tool_restores_defaults != 0;
+        m->pointer_settings_hidden = game->pointer_settings_hidden != 0;
+        m->pointer_legend       = game->pointer_legend;
+        m->dashboard_note       = game->dashboard_note;
+        if (game->host_text_lang && game->host_text)
+            launcher_i18n_set_host_table(game->host_text_lang, game->host_text);
+        m->disc_verify_cb     = game->disc_verify;      // real disc verdict (PSX), or NULL
         m->import_sbi_cb        = game->import_sbi;
         m->memcard_inspect_cb   = game->memcard_inspect;  // real memcard summary (PSX), or NULL
         m->bios_verify_cb       = game->bios_verify;

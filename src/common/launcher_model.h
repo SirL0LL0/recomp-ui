@@ -59,6 +59,9 @@ typedef enum {
      * skipped entirely when this client is already signed in or when the
      * server offers no logins -- see draw_netplay_mode_page. */
     LNG_VIEW_NETPLAY_SIGNIN,
+    /* The game manual (GameInfo.manual_pages): chapters on the left, text on
+     * the right. */
+    LNG_VIEW_MANUAL,
     /* Keep last. launcher_model_set_view validates against this rather than
      * against the last real view, which is what silently swallowed the two
      * views above when they were first added. */
@@ -498,6 +501,16 @@ typedef struct {
     int  num_host_options;
     const char* const* ui_languages;
     bool boxart_only_verified;
+    /* package games (GameInfo, borrowed): drop zone, manual, reset-all tool,
+     * pointer card without runner settings, host texts */
+    bool rom_drop_zone;
+    const char* rom_drop_hint;
+    int  (*manual_pages_cb)(const char* ui_lang, const RecompLauncherCManualPage** pages);
+    int  manual_page;                    /* chapter shown on the Manual page */
+    bool tool_restores_defaults;
+    bool pointer_settings_hidden;
+    const char* pointer_legend;
+    const char* dashboard_note;
 
     // ---- inferred SystemProfile (launcher_system.h) ----
     // Derived once in launcher_model_init() from the ABI GameInfo's `platform`
