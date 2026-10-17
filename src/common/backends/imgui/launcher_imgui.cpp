@@ -1921,13 +1921,14 @@ struct SettingsChoice { int value; const char* label; };
  */
 int settings_combo_row(const char* label, const LauncherTheme& th,
                        const char* id, const SettingsChoice* choices,
-                       int count, int current) {
+                       int count, int current, float width = 0.0f) {
+    const float w = width > 0 ? width : px(SETTINGS_CTRL_W);   /* 0 = the usual control width */
     const char* current_label = "";
     for (int i = 0; i < count; ++i)
         if (choices[i].value == current) { current_label = choices[i].label; break; }
 
-    row_label_right(label, th, px(SETTINGS_CTRL_W));
-    ImGui::SetNextItemWidth(px(SETTINGS_CTRL_W));
+    row_label_right(label, th, w);
+    ImGui::SetNextItemWidth(w);
     int picked = current;
     if (ImGui::BeginCombo(id, ui_text(current_label))) {
         for (int i = 0; i < count; ++i)
@@ -1954,10 +1955,19 @@ static const SettingsChoice kRunAheadChoices[RECOMP_LAUNCHER_RUN_AHEAD_MAX + 1] 
 /* The three rows those lists drive, so the legacy and deep Display surfaces
  * cannot drift apart in what they offer. */
 void row_window_scale(LauncherModel* m, const LauncherTheme& th) {
+    /* the game's own scale names (GameInfo.scale_labels), else 1x..6x */
+    const SettingsChoice* scelte = kScaleChoices;
+    int n = LNG_WINDOW_SCALE_MAX;
+    SettingsChoice proprie[LNG_WINDOW_SCALE_LIMIT];
+    if (m->scale_labels && m->num_scale_labels > 0) {
+        n = launcher_model_scale_max(m);
+        for (int i = 0; i < n; i++) proprie[i] = SettingsChoice{ i + 1, m->scale_labels[i] };
+        scelte = proprie;
+    }
     launcher_model_set_scale(
         m, settings_combo_row("Window scale", th, "##window_scale",
-                              kScaleChoices, LNG_WINDOW_SCALE_MAX,
-                              m->s.window_scale < 1 ? 1 : m->s.window_scale));
+                              scelte, n, m->s.window_scale < 1 ? 1 : m->s.window_scale,
+                              scelte == kScaleChoices ? 0.0f : px(250)));
 }
 
 /* The game language: a dropdown once there are more than a few (a cycle
@@ -3869,7 +3879,8 @@ static void draw_aspect_row(LauncherModel* m, const LauncherTheme& th) {
      * to be inside the width reserved here -- right-anchoring aligns the right
      * edge of what it is told about, and a tag left out of the sum hangs off
      * the card. */
-    float ctrl_w = px(180);
+    const bool combo = m->aspect_labels && m->num_aspect_labels > 3;
+    float ctrl_w = combo ? px(250) : px(180);
     if (m->aspect_experimental)
         ctrl_w += px(8) + ImGui::CalcTextSize("EXPERIMENTAL").x;
     row_label_right(m->aspect_setting_label && m->aspect_setting_label[0]
@@ -3877,7 +3888,16 @@ static void draw_aspect_row(LauncherModel* m, const LauncherTheme& th) {
                         : "Aspect ratio",
                     th, ctrl_w);
     ImGui::PushID("aspect_ratio");
-    if (ImGui::Button(ui_text(launcher_model_aspect_label(m)), ImVec2(px(180), px(30))))
+    if (combo) {
+        /* many game aspects: a dropdown shows them all (a cycle has no "back") */
+        ImGui::SetNextItemWidth(px(250));
+        if (ImGui::BeginCombo("##aspect", ui_text(launcher_model_aspect_label(m)))) {
+            for (int i = 0; i < m->num_aspect_labels; ++i)
+                if (ImGui::Selectable(ui_text(m->aspect_labels[i]), i == m->s.aspect_index))
+                    m->s.aspect_index = i;
+            ImGui::EndCombo();
+        }
+    } else if (ImGui::Button(ui_text(launcher_model_aspect_label(m)), ImVec2(px(180), px(30))))
         launcher_model_cycle_aspect(m);
     if (m->aspect_experimental) {
         ImGui::SameLine(0, px(8));

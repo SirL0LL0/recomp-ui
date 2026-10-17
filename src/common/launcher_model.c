@@ -536,6 +536,8 @@ void launcher_model_init(LauncherModel* m,
         m->boxart_path          = game->boxart_path;      // NULL => default boxart.tga
         m->aspect_labels        = game->aspect_labels;    // NULL => built-in 4:3/16:9/21:9
         m->num_aspect_labels    = game->num_aspect_labels;
+    m->scale_labels         = game->scale_labels;     // NULL => built-in 1x..6x
+    m->num_scale_labels     = game->num_scale_labels;
         m->aspect_experimental  = game->aspect_experimental != 0;
         m->aspect_setting_label = game->aspect_setting_label;
         m->aspect_setting_help  = game->aspect_setting_help;
@@ -1561,15 +1563,21 @@ void launcher_model_cancel_restore_defaults(LauncherModel* m) {
     if (m) m->defaults_modal_open = false;
 }
 
+int launcher_model_scale_max(const LauncherModel* m) {
+    if (m && m->scale_labels && m->num_scale_labels > 0)
+        return m->num_scale_labels < LNG_WINDOW_SCALE_LIMIT ? m->num_scale_labels : LNG_WINDOW_SCALE_LIMIT;
+    return LNG_WINDOW_SCALE_MAX;
+}
+
 void launcher_model_cycle_scale(LauncherModel* m) {
-    m->s.window_scale = (m->s.window_scale >= LNG_WINDOW_SCALE_MAX)
+    m->s.window_scale = (m->s.window_scale >= launcher_model_scale_max(m))
                             ? 1 : m->s.window_scale + 1;
     if (m->s.window_scale < 1) m->s.window_scale = 1;
 }
 
 void launcher_model_set_scale(LauncherModel* m, int scale) {
     if (!m) return;
-    m->s.window_scale = clampi(scale, 1, LNG_WINDOW_SCALE_MAX);
+    m->s.window_scale = clampi(scale, 1, launcher_model_scale_max(m));
 }
 
 void launcher_model_toggle_filter(LauncherModel* m) {

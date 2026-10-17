@@ -1814,6 +1814,12 @@ typedef struct RecompLauncherCGameInfo {
     const char* const* aspect_labels;
     int  num_aspect_labels;
     int  aspect_experimental;
+    /* Game-supplied window scale vocabulary: Settings.window_scale picks
+     * 1..num_scale_labels and scale_labels[i] names value i + 1 (e.g. half
+     * steps of a 512-line display: "x0.5", "x1 native", "x1.5"...). NULL
+     * keeps the built-in "1x".."6x". At most LNG_WINDOW_SCALE_LIMIT. */
+    const char* const* scale_labels;
+    int  num_scale_labels;
 
     /* ---- audio output device picker (N64/RT64 hosts) --------------------
      * When num_audio_devices > 0, Settings->Audio grows an "Output device"

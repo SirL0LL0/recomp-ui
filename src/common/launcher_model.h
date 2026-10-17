@@ -396,6 +396,9 @@ typedef struct {
     const char* const* aspect_labels;
     int  num_aspect_labels;
     bool aspect_experimental;
+    // Game-supplied window scale labels (GameInfo.scale_labels): value i+1.
+    const char* const* scale_labels;
+    int  num_scale_labels;
     const char* aspect_setting_label;
     const char* aspect_setting_help;
     bool adaptive_view_supported;
@@ -842,6 +845,8 @@ void launcher_model_cancel_restore_defaults(LauncherModel* m);
 // the cycle's wrap and the dropdown's list, so the two can never offer
 // different sets.
 #define LNG_WINDOW_SCALE_MAX 6
+#define LNG_WINDOW_SCALE_LIMIT 12            // most entries a game's scale_labels may have
+int  launcher_model_scale_max(const LauncherModel* m);   // num_scale_labels, or LNG_WINDOW_SCALE_MAX
 void launcher_model_cycle_scale(LauncherModel* m);   // 1..LNG_WINDOW_SCALE_MAX wrap
 void launcher_model_set_scale(LauncherModel* m, int scale);  // clamped
 void launcher_model_toggle_filter(LauncherModel* m);
