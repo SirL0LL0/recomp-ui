@@ -538,6 +538,8 @@ void launcher_model_init(LauncherModel* m,
         m->num_aspect_labels    = game->num_aspect_labels;
     m->scale_labels         = game->scale_labels;     // NULL => built-in 1x..6x
     m->num_scale_labels     = game->num_scale_labels;
+    m->filter_labels        = game->filter_labels;    // NULL => the linear checkbox
+    m->num_filter_labels    = game->num_filter_labels;
         m->aspect_experimental  = game->aspect_experimental != 0;
         m->aspect_setting_label = game->aspect_setting_label;
         m->aspect_setting_help  = game->aspect_setting_help;
@@ -678,6 +680,8 @@ void launcher_model_init(LauncherModel* m,
         // first gains the three-state scaler control.
         if (m->s.linear_filter) m->s.sharp_filter = 0;
     }
+    if (m->filter_labels && m->num_filter_labels > 0)
+        m->s.filter_index = clampi(m->s.filter_index, 0, m->num_filter_labels - 1);
     if (m->has_frame_blend)
         m->s.frame_blend = m->s.frame_blend ? 1 : 0;
     /* A host may seed a depth its build predates, or a negative from a

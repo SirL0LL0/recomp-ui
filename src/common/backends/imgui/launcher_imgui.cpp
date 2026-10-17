@@ -1970,6 +1970,18 @@ void row_window_scale(LauncherModel* m, const LauncherTheme& th) {
                               scelte == kScaleChoices ? 0.0f : px(250)));
 }
 
+/* The game's own scaling filters (GameInfo.filter_labels) as a dropdown that
+ * sets Settings.filter_index; false when the game supplies none. */
+bool row_game_filter(LauncherModel* m, const LauncherTheme& th) {
+    if (!m->filter_labels || m->num_filter_labels <= 0) return false;
+    SettingsChoice scelte[16];
+    int n = m->num_filter_labels < 16 ? m->num_filter_labels : 16;
+    for (int i = 0; i < n; i++) scelte[i] = SettingsChoice{ i, m->filter_labels[i] };
+    m->s.filter_index = settings_combo_row("Scaling filter", th, "##game_filter", scelte, n,
+                                           m->s.filter_index, px(250));
+    return true;
+}
+
 /* The game language: a dropdown once there are more than a few (a cycle
  * button through thirteen languages has no "back"). Picking one also switches
  * the launcher's texts (GameInfo.ui_languages). */
@@ -4137,7 +4149,8 @@ void draw_display_controls(LauncherModel* m, const LauncherTheme& th) {
             bool is = m->s.integer_scale != 0;
             if (ImGui::Checkbox("##intscale", &is)) launcher_model_toggle_integer_scale(m);
         }
-        if (m->has_sharp_filter) {
+        if (row_game_filter(m, th)) {
+        } else if (m->has_sharp_filter) {
             row_label_right("Scaling filter", th, px(180));
             if (ImGui::Button(ui_text(launcher_model_scaling_filter_label(m)),
                               ImVec2(px(180), px(30))))
@@ -4369,7 +4382,8 @@ void draw_display_controls(LauncherModel* m, const LauncherTheme& th) {
     }
     draw_aspect_row(m, th);
 
-    if (m->has_sharp_filter) {
+    if (row_game_filter(m, th)) {
+    } else if (m->has_sharp_filter) {
         row_label_right("Scaling filter", th, px(SETTINGS_CTRL_W));
         if (ImGui::Button(ui_text(launcher_model_scaling_filter_label(m)),
                           ImVec2(px(SETTINGS_CTRL_W), px(30))))

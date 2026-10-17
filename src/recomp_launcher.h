@@ -1212,6 +1212,7 @@ struct RecompLauncherCSettings {
     int  fullscreen;        // 0 off, 1 borderless, 2 exclusive
     int  ignore_aspect;     // bool
     int  linear_filter;     // bool
+    int  filter_index;      // with GameInfo.filter_labels: 0..num_filter_labels-1
     int  widescreen;        // bool (EXPERIMENTAL, default 0)
     int  widescreen_hud;    // bool
     int  enable_audio;      // bool
@@ -1820,6 +1821,11 @@ typedef struct RecompLauncherCGameInfo {
      * keeps the built-in "1x".."6x". At most LNG_WINDOW_SCALE_LIMIT. */
     const char* const* scale_labels;
     int  num_scale_labels;
+    /* Game-supplied scaling filters (nearest, sharp bilinear, bicubic...):
+     * Display settings show a "Scaling filter" dropdown that sets
+     * Settings.filter_index, in place of the Linear filtering checkbox. */
+    const char* const* filter_labels;
+    int  num_filter_labels;
 
     /* ---- audio output device picker (N64/RT64 hosts) --------------------
      * When num_audio_devices > 0, Settings->Audio grows an "Output device"

@@ -399,6 +399,9 @@ typedef struct {
     // Game-supplied window scale labels (GameInfo.scale_labels): value i+1.
     const char* const* scale_labels;
     int  num_scale_labels;
+    // Game-supplied scaling filters (GameInfo.filter_labels): Settings.filter_index.
+    const char* const* filter_labels;
+    int  num_filter_labels;
     const char* aspect_setting_label;
     const char* aspect_setting_help;
     bool adaptive_view_supported;
