@@ -52,8 +52,10 @@ static const char* const kPanelsSettingsAmiga[] = { "video", "audio", NULL };
 // 1084S monitor (Lanczos, gaussian beam, slot mask, halation, light
 // curvature), an Easymode-style flat CRT, or plain scanlines. The pixel
 // shape (PAL 4:3, NTSC 4:3 or square) is the separate aspect setting (aspect_labels).
+// "Lola Retro 1084S" is the Commodore 1084S preset of Lola Retro (MIT, by Zoki),
+// nine GLSL 3.30 passes simulating the whole analog chain.
 static const char* const kAmigaScreenKinds[] = {
-    "Sharp", "Commodore 1084S", "CRT Easymode", "Scanlines" };
+    "Sharp", "Commodore 1084S", "CRT Easymode", "Scanlines", "Lola Retro 1084S" };
 #define LNG_AMIGA_SCREEN_KIND_COUNT \
     ((int)(sizeof(kAmigaScreenKinds) / sizeof(kAmigaScreenKinds[0])))
 
