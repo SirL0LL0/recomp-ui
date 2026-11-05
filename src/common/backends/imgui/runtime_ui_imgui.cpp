@@ -67,7 +67,9 @@ void draw_sections(RecompRuntimeUi *ui, const LauncherTheme &theme,
         const bool selected = index == ui->section_index;
         const bool clicked = ImGui::Selectable(ui->sections[index], selected, 0,
                                                ImVec2(0.0f, theme.row_height));
-        if ((clicked || ImGui::IsItemHovered()) &&
+        const ImVec2 delta = ImGui::GetIO().MouseDelta;   /* hover: only a moving mouse */
+        const bool hovered = (delta.x != 0.0f || delta.y != 0.0f) && ImGui::IsItemHovered();
+        if ((clicked || hovered) &&
             (index != ui->section_index || (clicked && enter_on_click))) {
             const int was_in_section = ui->in_section;
             recomp_runtime_ui_enter_section(ui, index);
@@ -77,9 +79,36 @@ void draw_sections(RecompRuntimeUi *ui, const LauncherTheme &theme,
     }
 }
 
+/* Hover selects a row only when the mouse actually moved: a pointer resting
+ * over the menu must not take the selection back from the keyboard or the
+ * controller every frame. */
+static bool mouse_moved() {
+    const ImGuiIO &io = ImGui::GetIO();
+    return io.MouseDelta.x != 0.0f || io.MouseDelta.y != 0.0f;
+}
+
+/* Keep the row chosen with the keyboard or the controller inside the
+ * scrolling list (call right after the row's item). */
+static void scroll_to_selected_row(bool row_changed) {
+    if (!row_changed) return;
+    const float top = ImGui::GetItemRectMin().y;
+    const float bottom = ImGui::GetItemRectMax().y;
+    const float view_top = ImGui::GetWindowPos().y;
+    const float view_bottom = view_top + ImGui::GetWindowHeight();
+    if (top < view_top) ImGui::SetScrollHereY(0.0f);
+    else if (bottom > view_bottom) ImGui::SetScrollHereY(1.0f);
+}
+
 void draw_items(RecompRuntimeUi *ui, const LauncherTheme &theme,
                 bool touch_friendly) {
     const size_t count = recomp_runtime_ui_page_entry_count(ui);
+    static size_t last_row = static_cast<size_t>(-1);
+    static size_t last_section = static_cast<size_t>(-1);
+    const bool row_changed = ui->row_index != last_row ||
+                             ui->section_index != last_section;
+    last_row = ui->row_index;
+    last_section = ui->section_index;
+    const bool hover_selects = mouse_moved();
     for (size_t index = 0; index < count; ++index) {
         char folder[96];
         const RecompRuntimeUiItem *item = recomp_runtime_ui_page_entry(
@@ -102,7 +131,8 @@ void draw_items(RecompRuntimeUi *ui, const LauncherTheme &theme,
                     return;
                 }
             }
-            if (ImGui::IsItemHovered()) {
+            if (selected) scroll_to_selected_row(row_changed);
+            if (hover_selects && ImGui::IsItemHovered()) {
                 ui->row_index = index;
                 ui->in_section = 1;
             }
@@ -142,7 +172,8 @@ void draw_items(RecompRuntimeUi *ui, const LauncherTheme &theme,
             if (item->type != RECOMP_RUNTIME_UI_INT)
                 recomp_runtime_ui_adjust_current(ui, 1, 1, 0);
         }
-        if (ImGui::IsItemHovered()) {
+        if (selected) scroll_to_selected_row(row_changed);
+        if (hover_selects && ImGui::IsItemHovered()) {
             ui->row_index = index;
             ui->in_section = 1;
         }
