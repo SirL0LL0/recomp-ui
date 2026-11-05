@@ -4447,6 +4447,28 @@ bool launcher_model_prepare_rom_patch(LauncherModel* m) {
         return false;
     }
 
+    /* The selected image may already be the patched one this executable was
+     * built for (the host lists it among the verified images too): use it as
+     * it is instead of patching it again. */
+    if (m->rom_patch_required_sha1 && m->rom_patch_required_sha1[0]) {
+        uint8_t source_sha[20];
+        char source_hex[41];
+        recompui_sha1_compute(source, source_len, source_sha);
+        recompui_sha1_hex(source_sha, source_hex);
+        if (strcmp(source_hex, m->rom_patch_required_sha1) == 0) {
+            snprintf(m->s.rom_patch_crc32, sizeof(m->s.rom_patch_crc32), "%08x",
+                     recompui_crc32_compute(source, source_len));
+            free(source); free(patch);
+            safe_copy(m->rom_patch_prepared_path, sizeof(m->rom_patch_prepared_path), m->rom_full);
+            safe_copy(m->rom_patch_prepared_sha1, sizeof(m->rom_patch_prepared_sha1), source_hex);
+            safe_copy(m->s.rom_patch_source_path, sizeof(m->s.rom_patch_source_path), m->rom_full);
+            safe_copy(m->s.rom_patch_sha1, sizeof(m->s.rom_patch_sha1), source_hex);
+            safe_copy(m->rom_patch_status, sizeof(m->rom_patch_status),
+                      "This ROM is already patched.");
+            return true;
+        }
+    }
+
     uint8_t* output = NULL; size_t output_len = 0;
     const bool applied = rom_patch_apply(source, source_len, patch, patch_len,
                                          &output, &output_len);
